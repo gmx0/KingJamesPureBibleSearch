@@ -410,7 +410,7 @@ void CLetterMatrixTableModel::clearSearchResults()
 	emit dataChanged(createIndex(0, 0), createIndex(rowCount()-1, columnCount()-1), { Qt::BackgroundRole });
 }
 
-QModelIndex CLetterMatrixTableModel::modelIndexFromMatrixIndex(uint32_t nMatrixIndex)
+QModelIndex CLetterMatrixTableModel::modelIndexFromMatrixIndex(uint32_t nMatrixIndex) const
 {
 	if (nMatrixIndex == 0) return QModelIndex();
 	return createIndex((nMatrixIndex+m_nOffset-1)/m_nWidth, (nMatrixIndex+m_nOffset-1)%m_nWidth);

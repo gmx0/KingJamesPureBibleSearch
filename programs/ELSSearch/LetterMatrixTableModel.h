@@ -51,23 +51,23 @@ public:
 									 QObject *parent = nullptr);
 
 	// Basic functionality:
-	int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-	int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+	virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
 	static constexpr int UserRole_Reference = Qt::UserRole;
 	static constexpr int UserRole_MatrixIndex = Qt::UserRole+1;
 	static constexpr int UserRole_MIMEPlainText = Qt::UserRole+2;
 	static constexpr int UserRole_MIMEHTMLText = Qt::UserRole+3;
 	static constexpr int UserRole_ResultsSet = Qt::UserRole+4;
-	QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+	virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 #ifndef IS_CONSOLE_APP
-	Qt::DropActions supportedDragActions() const override;
-	QMimeData *mimeData(const QModelIndexList &indexes) const override;
-	QStringList mimeTypes() const override;
+	virtual Qt::DropActions supportedDragActions() const override;
+	virtual QMimeData *mimeData(const QModelIndexList &indexes) const override;
+	virtual QStringList mimeTypes() const override;
 #endif
 
-	Qt::ItemFlags flags(const QModelIndex& index) const override;
+	virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
 
 	// --------------------------------
 
@@ -77,7 +77,7 @@ public:
 	int offset() const { return m_nOffset; }
 	LETTER_CASE_ENUM letterCase() const { return m_nLetterCase; }
 
-	QModelIndex modelIndexFromMatrixIndex(uint32_t nMatrixIndex);
+	QModelIndex modelIndexFromMatrixIndex(uint32_t nMatrixIndex) const;
 	uint32_t matrixIndexFromModelIndex(const QModelIndex &index) const;
 	uint32_t matrixIndexFromRowCol(int nRow, int nCol) const;
 	const CELSResultSet &resultsSet(uint32_t nMatrixIndex) const;
