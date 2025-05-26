@@ -1106,6 +1106,8 @@ CRelIndexEx CLetterMatrix::relIndexFromMatrixIndex(uint32_t nMatrixIndex) const
 		nMatrixIndex -= nMatrixShift;			// Remove letters from all of the prologues inserted ahead of current index
 		nMatrixIndex += nLetterShift;			// Add letters for all text skipped ahead of current index
 
+		if (nMatrixIndex == 0) return CRelIndexEx();
+
 		// Since we are only shifting the colophons from the beginning of each book
 		//	to the end of each book, the number of letters in each book should be
 		//	the same.  Therefore, the standard Denormalize call should give the same

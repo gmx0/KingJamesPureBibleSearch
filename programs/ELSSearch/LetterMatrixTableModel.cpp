@@ -120,7 +120,8 @@ QVariant CLetterMatrixTableModel::data(const QModelIndex &index, int role) const
 			break;
 
 		case UserRole_Reference:			// Returns the reference
-			return QVariant::fromValue(m_letterMatrix.relIndexFromMatrixIndex(nMatrixIndex));
+			if (nMatrixIndex) return QVariant::fromValue(m_letterMatrix.relIndexFromMatrixIndex(nMatrixIndex));
+			break;
 
 		case UserRole_MatrixIndex:			// Returns the Matrix Index
 			return nMatrixIndex;
@@ -330,7 +331,7 @@ QMimeData *CLetterMatrixTableModel::mimeData(const QModelIndexList &indexes) con
 
 	if (indexes.size() == 1) {
 		TPhraseTag tag(CRelIndexEx(indexes.at(0).data(UserRole_Reference).value<CRelIndexEx>()), 1);
-		CMimeHelper::addPhraseTagToMimeData(mime, tag);
+		if (tag.isSet()) CMimeHelper::addPhraseTagToMimeData(mime, tag);
 	}
 
 	return mime;
