@@ -122,7 +122,7 @@ protected slots:
 	// ----
 	void en_changedLetterCase(int nIndex);
 	// ----
-	void en_letterMatrixLayoutAboutToChange();
+	void en_letterMatrixModelAboutToBeReset();
 	void en_widthChanged(int nWidth);					// Width from ItemModel
 	void en_offsetChanged(int nOffset);
 	void en_widthSpinValueChanged(int nWidth);			// SpinBox value changed

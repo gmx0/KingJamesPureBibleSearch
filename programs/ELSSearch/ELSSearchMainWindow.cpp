@@ -345,7 +345,7 @@ CELSSearchMainWindow::CELSSearchMainWindow(CBibleDatabasePtr pBibleDatabase,
 
 	connect(ui->spinWidth, SIGNAL(valueChanged(int)), this, SLOT(en_widthSpinValueChanged(int)));
 	connect(ui->spinOffset, SIGNAL(valueChanged(int)), m_pLetterMatrixTableModel, SLOT(setOffset(int)));
-	connect(m_pLetterMatrixTableModel, SIGNAL(layoutAboutToBeChanged(QList<QPersistentModelIndex>,QAbstractItemModel::LayoutChangeHint)), this, SLOT(en_letterMatrixLayoutAboutToChange()));
+	connect(m_pLetterMatrixTableModel, SIGNAL(modelAboutToBeReset()), this, SLOT(en_letterMatrixLayoutAboutToChange()));
 	connect(m_pLetterMatrixTableModel, SIGNAL(widthChanged(int)), this, SLOT(en_widthChanged(int)));
 	connect(m_pLetterMatrixTableModel, SIGNAL(offsetChanged(int)), this, SLOT(en_offsetChanged(int)));
 	connect(ui->cmbLetterCase, SIGNAL(currentIndexChanged(int)), this, SLOT(en_changedLetterCase(int)));
@@ -934,7 +934,7 @@ void CELSSearchMainWindow::en_changedSortOrder(int nIndex)
 
 // ----------------------------------------------------------------------------
 
-void CELSSearchMainWindow::en_letterMatrixLayoutAboutToChange()
+void CELSSearchMainWindow::en_letterMatrixModelAboutToBeReset()
 {
 	QRect rcTableView = ui->tvLetterMatrix->rect();
 	int nRow = ui->tvLetterMatrix->rowAt(rcTableView.height()/2);

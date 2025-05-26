@@ -355,9 +355,13 @@ void CLetterMatrixTableModel::setWidth(int nWidth)
 {
 	if (nWidth < 1) nWidth = 1;
 	if (m_nWidth != nWidth) {
-		emit layoutAboutToBeChanged();
+		// Use reset model instead of layout changed since current position
+		//	and such are invalidated too.  Even with the changes to use
+		//	our MatrixIndex for the model ID to where the indexes could get
+		//	remapped in the layout, it's really slow and clunky if we do that.
+		beginResetModel();
 		m_nWidth = nWidth;
-		emit layoutChanged();
+		endResetModel();
 		emit widthChanged(nWidth);
 	}
 }
@@ -367,9 +371,13 @@ void CLetterMatrixTableModel::setOffset(int nOffset)
 	if (nOffset < 0) nOffset = 0;
 	if (nOffset >= m_nWidth) nOffset = m_nWidth-1;
 	if (m_nOffset != nOffset) {
-		emit layoutAboutToBeChanged();
+		// Use reset model instead of layout changed since current position
+		//	and such are invalidated too.  Even with the changes to use
+		//	our MatrixIndex for the model ID to where the indexes could get
+		//	remapped in the layout, it's really slow and clunky if we do that.
+		beginResetModel();
 		m_nOffset = nOffset;
-		emit layoutChanged();
+		endResetModel();
 		emit offsetChanged(nOffset);
 	}
 }
