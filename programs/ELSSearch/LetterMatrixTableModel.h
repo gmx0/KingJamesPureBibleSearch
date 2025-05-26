@@ -53,6 +53,7 @@ public:
 	// Basic functionality:
 	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 	virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+	virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
 
 	static constexpr int UserRole_Reference = Qt::UserRole;
 	static constexpr int UserRole_MatrixIndex = Qt::UserRole+1;

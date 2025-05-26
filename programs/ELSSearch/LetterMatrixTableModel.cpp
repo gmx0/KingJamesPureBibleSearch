@@ -92,13 +92,18 @@ int CLetterMatrixTableModel::columnCount(const QModelIndex &parent) const
 	return m_nWidth;
 }
 
+QModelIndex  CLetterMatrixTableModel::index(int row, int column, const QModelIndex &parent) const
+{
+	if (parent.isValid()) return QModelIndex();
+	return hasIndex(row, column, parent) ? createIndex(row, column, matrixIndexFromRowCol(row, column)) : QModelIndex();
+}
+
 QVariant CLetterMatrixTableModel::data(const QModelIndex &index, int role) const
 {
 	if (!index.isValid())
 		return QVariant();
 
 	uint32_t nMatrixIndex = matrixIndexFromModelIndex(index);
-	if (nMatrixIndex >= static_cast<uint32_t>(m_letterMatrix.size())) nMatrixIndex = 0;
 
 	switch (role) {
 		case Qt::DisplayRole:
@@ -421,18 +426,19 @@ void CLetterMatrixTableModel::clearSearchResults()
 QModelIndex CLetterMatrixTableModel::modelIndexFromMatrixIndex(uint32_t nMatrixIndex) const
 {
 	if (nMatrixIndex == 0) return QModelIndex();
-	return createIndex((nMatrixIndex+m_nOffset-1)/m_nWidth, (nMatrixIndex+m_nOffset-1)%m_nWidth);
+	return createIndex((nMatrixIndex+m_nOffset-1)/m_nWidth, (nMatrixIndex+m_nOffset-1)%m_nWidth, nMatrixIndex);
 }
 
 uint32_t CLetterMatrixTableModel::matrixIndexFromModelIndex(const QModelIndex &index) const
 {
-	if (!index.isValid()) return 0;
-	return (index.row() * m_nWidth) + index.column() + 1 - m_nOffset;
+	return index.isValid() ? index.internalId() : 0;
 }
 
 uint32_t CLetterMatrixTableModel::matrixIndexFromRowCol(int nRow, int nCol) const
 {
-	return (nRow * m_nWidth) + nCol + 1 - m_nOffset;
+	uint32_t nMatrixIndex = (nRow * m_nWidth) + nCol + 1 - m_nOffset;
+	if (nMatrixIndex >= static_cast<uint32_t>(m_letterMatrix.size())) nMatrixIndex = 0;
+	return nMatrixIndex;
 }
 
 const CELSResultSet &CLetterMatrixTableModel::resultsSet(uint32_t nMatrixIndex) const
