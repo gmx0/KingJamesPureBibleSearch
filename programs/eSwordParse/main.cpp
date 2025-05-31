@@ -38,15 +38,14 @@
 #include "../KJVCanOpener/BibleLayout.h"
 
 #include "version.h"
+#include "../git_version.txt"
 
 namespace {
 	//////////////////////////////////////////////////////////////////////
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
-	static const QString g_constrGitVersion =
-	#include "../git_version.txt"
-	;
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 }	// namespace
 
@@ -207,7 +206,7 @@ int main(int argc, char *argv[])
 	}
 
 	if ((nArgsFound != 3) || (bUnknownOption)) {
-		std::cerr << eSwordParse_APPNAME << " Version " << eSwordParse_VERSION_SEMVER << "\n";
+		std::cerr << eSwordParse_APPNAME << " Version: " << eSwordParse_VERSION_SEMVER << "\n";
 		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <UUID-Index> <eSword-SQL-in-file> <OSIS-out-file>\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("<eSword-SQL-in-file> = e-Sword .bblx SQL Database File\n").toUtf8().data();

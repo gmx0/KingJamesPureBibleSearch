@@ -49,6 +49,7 @@
 #include "../KJVCanOpener/PathConsts.h"
 
 #include "version.h"
+#include "../git_version.txt"
 
 // ============================================================================
 
@@ -57,9 +58,7 @@ namespace {
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
-	static const QString g_constrGitVersion =
-	#include "../git_version.txt"
-	;
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 }	// namespace
 
@@ -350,7 +349,7 @@ int main(int argc, char *argv[])
 	}
 
 	if ((nArgsFound != 2) || (bUnknownOption)) {
-		std::cerr << KJVDiff_APPNAME << " Version " << KJVDiff_VERSION_SEMVER << "\n";
+		std::cerr << KJVDiff_APPNAME << " Version: " << KJVDiff_VERSION_SEMVER << "\n";
 		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <File/UUID-Index-1> <File/UUID-Index-2>\n\n").arg(a.applicationName()).toUtf8().data();
 		std::cerr << QString("Reads the specified databases and does a comparison for pertinent differences\n").toUtf8().data();

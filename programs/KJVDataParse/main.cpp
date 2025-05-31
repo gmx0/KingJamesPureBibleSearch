@@ -54,11 +54,14 @@
 #define CHECK_INDEXES 0
 
 #include "version.h"
+#include "../git_version.txt"
 
 namespace {
-	static const QString g_constrGitVersion =
-	#include "../git_version.txt"
-	;
+	//////////////////////////////////////////////////////////////////////
+	// File-scoped constants
+	//////////////////////////////////////////////////////////////////////
+
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 	// Env constants:
 	// --------------
@@ -3961,7 +3964,7 @@ int main(int argc, char *argv[])
 	if (bLookingForMorphFilename) bUnknownOption = true;	// Still looking for morphology filename
 
 	if ((nArgsFound < 3) || (nArgsFound > 4) || (strOutputPath.isEmpty()) || (bUnknownOption)) {
-		std::cerr << KJVDataParse_APPNAME << " Version " << KJVDataParse_VERSION_SEMVER << "\n";
+		std::cerr << KJVDataParse_APPNAME << " Version: " << KJVDataParse_VERSION_SEMVER << "\n";
 		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <UUID-Index> <OSIS-Database> <infofile> [<Strongs-Imp-path>]\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("Reads and parses the OSIS database and outputs all of the CSV files\n").toUtf8().data();

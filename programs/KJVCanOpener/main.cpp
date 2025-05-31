@@ -47,8 +47,10 @@
 
 #if QT_VERSION >= 0x050000
 #include "version.h"
+#include "../git_version.txt"
 #else
 #include "version-487.h"
+#define GIT_VERSION_STR KJVCanOpener_VERSION
 #endif
 #include "PersistentSettings.h"
 
@@ -77,6 +79,8 @@ namespace {
 	//////////////////////////////////////////////////////////////////////
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
+
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 	const QString g_constrInitialization = QObject::tr("King James Pure Bible Search Initialization", "Errors");
 
@@ -380,7 +384,8 @@ int main(int argc, char *argv[])
 	}
 
 	if (bShowHelp) {
-		std::cout << KJVCanOpener_APPNAME << " Version " << KJVCanOpener_VERSION_SEMVER << "\n\n";
+		std::cout << KJVCanOpener_APPNAME << " Version: " << KJVCanOpener_VERSION_SEMVER << "\n";
+		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cout << "Usage information:\n\n";
 		std::cout << QString("%1 [options] [<KJSFile>]\n\n").arg(QFileInfo(CMyApplication::applicationFilePath()).fileName()).toUtf8().data();
 		std::cout << "Where:\n";

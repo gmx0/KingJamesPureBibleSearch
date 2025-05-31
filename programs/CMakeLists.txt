@@ -42,9 +42,13 @@ endif()
 # Custom command to get git describe output
 add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo_append R\"foo\( > ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo \#undef Q > ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo \#undef QUOTE >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo \#define Q\(text\) \#text >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo \#define QUOTE\(text\) Q\(text\) >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo_append \#define GIT_VERSION\  >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
 	COMMAND ${GIT_EXECUTABLE} describe --always --dirty=-dirty >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo_append \)foo\" >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo \#define GIT_VERSION_STR QUOTE\(GIT_VERSION\) >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	VERBATIM
 )

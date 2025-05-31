@@ -46,15 +46,14 @@
 #include <zlib.h>
 
 #include "version.h"
+#include "../git_version.txt"
 
 namespace {
 	//////////////////////////////////////////////////////////////////////
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
-	static const QString g_constrGitVersion =
-	#include "../git_version.txt"
-	;
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 }	// namespace
 
@@ -975,7 +974,7 @@ int main(int argc, char *argv[])
 	}
 
 	if ((nArgsFound != 2) || (bUnknownOption) || (strSQLInFilename.isEmpty()) || (strSQLOutFilename.isEmpty())) {
-		std::cerr << eSwordDecrypt_APPNAME << " Version " << eSwordDecrypt_VERSION_SEMVER << "\n";
+		std::cerr << eSwordDecrypt_APPNAME << " Version: " << eSwordDecrypt_VERSION_SEMVER << "\n";
 		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [Options] <eSword-SQL-in-file> <eSword-SQL-out-file>\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("<eSword-SQL-in-file>  = Encrypted e-Sword .bblx SQL Database File\n").toUtf8().data();

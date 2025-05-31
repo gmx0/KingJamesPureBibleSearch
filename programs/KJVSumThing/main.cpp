@@ -56,15 +56,14 @@ constexpr int MIN_SEARCH_WITHIN_CACHE_LIMIT = 10;		// Minimum number of results 
 #include "../KJVCanOpener/PathConsts.h"
 
 #include "version.h"
+#include "../git_version.txt"
 
 namespace {
 	//////////////////////////////////////////////////////////////////////
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
-	static const QString g_constrGitVersion =
-	#include "../git_version.txt"
-	;
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 }	// namespace
 
@@ -587,7 +586,7 @@ int main(int argc, char *argv[])
 	if (bToggleAccentSensitive) bPreserveAccentSensitive = false;
 
 	if ((nArgsFound < 3) || (nArgsFound > 5) || (bUnknownOption)) {
-		std::cerr << KJVSumThing_APPNAME << " Version " << KJVSumThing_VERSION_SEMVER << "\n";
+		std::cerr << KJVSumThing_APPNAME << " Version: " << KJVSumThing_VERSION_SEMVER << "\n";
 		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <Bible-UUID-Index> <Phrase-Count> <Modulus-Value> [<Start-Ref> [<End-Ref>]]\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("\n").toUtf8().data();

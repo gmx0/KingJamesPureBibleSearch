@@ -26,8 +26,10 @@
 #include "ReportError.h"
 #if QT_VERSION >= 0x050000
 #include "version.h"
+#include "../git_version.txt"
 #else
 #include "version-487.h"
+#define GIT_VERSION_STR KJVCanOpener_VERSION
 #endif
 
 #include <QApplication>
@@ -41,10 +43,11 @@
 // ============================================================================
 
 namespace {
+	//////////////////////////////////////////////////////////////////////
+	// File-scoped constants
+	//////////////////////////////////////////////////////////////////////
 
-	static const QString g_constrGitVersion =
-	#include "../git_version.txt"
-	;
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 }
 
