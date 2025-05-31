@@ -270,6 +270,7 @@ add_executable(${ELSSearch_TARGET} ${GUI_TYPE}
 	${ELSSearch_FORMS}
 	${ELSSearch_RESOURCES}
 )
+add_dependencies(${ELSSearch_TARGET} git_version_target)
 target_compile_options(${ELSSearch_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${ELSSearch_TARGET} PRIVATE

@@ -152,6 +152,7 @@ add_executable(${eSwordParse_TARGET} ${GUI_TYPE}
 	${eSwordParse_FORMS}
 	${eSwordParse_RESOURCES}
 )
+add_dependencies(${eSwordParse_TARGET} git_version_target)
 target_compile_options(${eSwordParse_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${eSwordParse_TARGET} PRIVATE

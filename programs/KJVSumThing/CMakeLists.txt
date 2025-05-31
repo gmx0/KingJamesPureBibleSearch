@@ -198,6 +198,7 @@ add_executable(${KJVSumThing_TARGET} ${GUI_TYPE}
 	${KJVSumThing_FORMS}
 	${KJVSumThing_RESOURCES}
 )
+add_dependencies(${KJVSumThing_TARGET} git_version_target)
 target_compile_options(${KJVSumThing_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${KJVSumThing_TARGET} PRIVATE

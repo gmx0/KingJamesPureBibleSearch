@@ -48,6 +48,10 @@ namespace {
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
+	static const QString g_constrGitVersion =
+	#include "../git_version.txt"
+	;
+
 	const QString constrKJNPrefix("kjn");
 	const QString constrKJNNameSpaceURI("http://www.dewtronics.com/KingJamesPureBibleSearch/namespace");
 	// ----
@@ -180,7 +184,8 @@ int main(int argc, char *argv[])
 	}
 
 	if ((nArgsFound != 2) || (bUnknownOption)) {
-		std::cerr << CrossRefParse_APPNAME << " Version " << CrossRefParse_VERSION_SEMVER << "\n\n";
+		std::cerr << CrossRefParse_APPNAME << " Version " << CrossRefParse_VERSION_SEMVER << "\n";
+		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <CrossRefFile> <KJNOutputFile>\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("Reads the specified www.openbible.info cross-references file and generates\n").toUtf8().data();
 		std::cerr << QString("    KJPBS Notes (KJN) database file\n\n").toUtf8().data();

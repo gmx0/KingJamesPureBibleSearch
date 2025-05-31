@@ -55,6 +55,10 @@ namespace {
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
+	static const QString g_constrGitVersion =
+	#include "../git_version.txt"
+	;
+
 }	// namespace
 
 
@@ -202,7 +206,8 @@ int main(int argc, char *argv[])
 	}
 
 	if ((nArgsFound < 1) || (bUnknownOption)) {
-		std::cerr << KJVPhraseDump_APPNAME << " Version " << KJVPhraseDump_VERSION_SEMVER << "\n\n";
+		std::cerr << KJVPhraseDump_APPNAME << " Version " << KJVPhraseDump_VERSION_SEMVER << "\n";
+		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <UUID-Index> [[<Min-Occurrences>] <Max-Occurrences]\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("Reads the specified database, dumps all phrases with at least %1 words and an occurrence\n").arg(nMinLength).toUtf8().data();
 		std::cerr << QString("    count greater or equal to that specified (default 2).\n\n").toUtf8().data();

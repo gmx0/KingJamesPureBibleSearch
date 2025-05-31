@@ -152,6 +152,7 @@ add_executable(${MyBibleParse_TARGET} ${GUI_TYPE}
 	${MyBibleParse_FORMS}
 	${MyBibleParse_RESOURCES}
 )
+add_dependencies(${MyBibleParse_TARGET} git_version_target)
 target_compile_options(${MyBibleParse_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${MyBibleParse_TARGET} PRIVATE

@@ -193,6 +193,7 @@ add_executable(${CrossRefParse_TARGET} ${GUI_TYPE}
 	${CrossRefParse_FORMS}
 	${CrossRefParse_RESOURCES}
 )
+add_dependencies(${CrossRefParse_TARGET} git_version_target)
 target_compile_options(${CrossRefParse_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${CrossRefParse_TARGET} PRIVATE

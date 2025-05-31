@@ -178,6 +178,7 @@ add_executable(${eSwordDecrypt_TARGET} ${GUI_TYPE}
 	${eSwordDecrypt_FORMS}
 	${eSwordDecrypt_RESOURCES}
 )
+add_dependencies(${eSwordDecrypt_TARGET} git_version_target)
 target_compile_options(${eSwordDecrypt_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${eSwordDecrypt_TARGET} PRIVATE

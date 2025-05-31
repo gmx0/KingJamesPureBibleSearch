@@ -37,6 +37,17 @@
 
 #include "version.h"
 
+namespace {
+	//////////////////////////////////////////////////////////////////////
+	// File-scoped constants
+	//////////////////////////////////////////////////////////////////////
+
+	static const QString g_constrGitVersion =
+	#include "../git_version.txt"
+	;
+
+}	// namespace
+
 // ============================================================================
 
 static inline QString htmlEscape(const QString &aString)
@@ -361,7 +372,8 @@ int main(int argc, char *argv[])
 	}
 
 	if ((nArgsFound != 3) || (bUnknownOption)) {
-		std::cerr << MyBibleParse_APPNAME << " Version " << MyBibleParse_VERSION_SEMVER << "\n\n";
+		std::cerr << MyBibleParse_APPNAME << " Version " << MyBibleParse_VERSION_SEMVER << "\n";
+		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 <UUID-Index> <MyBible-SQL-in-file> <OSIS-out-file>\n\n").arg(argv[0]).toUtf8().data();
 //		std::cerr << QString("Usage: %1 [options] <UUID-Index> <MyBible-SQL-in-file> <OSIS-out-file>\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("<MyBible-SQL-in-file> = MyBible .SQLite3 Database File\n").toUtf8().data();

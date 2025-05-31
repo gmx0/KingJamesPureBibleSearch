@@ -198,6 +198,7 @@ add_executable(${KJVLookup_TARGET} ${GUI_TYPE}
 	${KJVLookup_FORMS}
 	${KJVLookup_RESOURCES}
 )
+add_dependencies(${KJVLookup_TARGET} git_version_target)
 target_compile_options(${KJVLookup_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${KJVLookup_TARGET} PRIVATE

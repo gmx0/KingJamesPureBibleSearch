@@ -190,6 +190,7 @@ add_executable(${KJVDiff_TARGET} ${GUI_TYPE}
 	${KJVDiff_FORMS}
 	${KJVDiff_RESOURCES}
 )
+add_dependencies(${KJVDiff_TARGET} git_version_target)
 target_compile_options(${KJVDiff_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${KJVDiff_TARGET} PRIVATE

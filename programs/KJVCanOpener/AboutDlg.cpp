@@ -40,6 +40,16 @@
 
 // ============================================================================
 
+namespace {
+
+	static const QString g_constrGitVersion =
+	#include "../git_version.txt"
+	;
+
+}
+
+// ============================================================================
+
 #if QT_VERSION < 0x050000
 #include <QTextDocument>			// Needed for Qt::escape, which is in this header, not <Qt> as is assistant says
 
@@ -97,7 +107,7 @@ CAboutDlg::CAboutDlg(QWidget *parent) :
 	strSpecialVersion = QString(KJVCanOpener_VERSION_SPECIALBUILD);
 #endif
 	if (!strSpecialVersion.isEmpty()) {
-		m_pAppSpecialVersion = scene->addText(QString("%1").arg(strSpecialVersion), QFont("Times New Roman", 10));
+		m_pAppSpecialVersion = scene->addText(QString("%1 (%2)").arg(strSpecialVersion).arg(g_constrGitVersion.trimmed()), QFont("Times New Roman", 10));
 		m_pAppSpecialVersion->setTextInteractionFlags(Qt::TextBrowserInteraction);
 	}
 	QString strBuildDate(__DATE__);

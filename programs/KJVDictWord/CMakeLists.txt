@@ -194,6 +194,7 @@ add_executable(${KJVDictWord_TARGET} ${GUI_TYPE}
 	${KJVDictWord_FORMS}
 	${KJVDictWord_RESOURCES}
 )
+add_dependencies(${KJVDictWord_TARGET} git_version_target)
 target_compile_options(${KJVDictWord_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${KJVDictWord_TARGET} PRIVATE

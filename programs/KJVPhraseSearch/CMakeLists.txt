@@ -196,6 +196,7 @@ add_executable(${KJVPhraseSearch_TARGET} ${GUI_TYPE}
 	${KJVPhraseSearch_FORMS}
 	${KJVPhraseSearch_RESOURCES}
 )
+add_dependencies(${KJVPhraseSearch_TARGET} git_version_target)
 target_compile_options(${KJVPhraseSearch_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${KJVPhraseSearch_TARGET} PRIVATE

@@ -59,6 +59,10 @@ namespace {
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
+	static const QString g_constrGitVersion =
+	#include "../git_version.txt"
+	;
+
 }	// namespace
 
 
@@ -225,7 +229,8 @@ int main(int argc, char *argv[])
 	if (bOutputWordsOnly && bOutputTransChangeAdded) bUnknownOption = true;	// Can't have transchange only and words only as both are types of words-only modes
 
 	if ((nArgsFound != 1) || (bUnknownOption)) {
-		std::cerr << KJVDataDump_APPNAME << " Version " << KJVDataDump_VERSION_SEMVER << "\n\n";
+		std::cerr << KJVDataDump_APPNAME << " Version " << KJVDataDump_VERSION_SEMVER << "\n";
+		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <UUID-Index>\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("Reads the specified database and dumps relevant data for each verse\n\n").toUtf8().data();
 		std::cerr << QString("Options are:\n").toUtf8().data();

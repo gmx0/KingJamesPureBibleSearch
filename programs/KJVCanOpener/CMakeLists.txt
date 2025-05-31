@@ -586,6 +586,7 @@ add_executable(${KJVCanOpener_TARGET} ${GUI_TYPE}
 	${KJVCanOpener_FORMS}
 	${KJVCanOpener_RESOURCES}
 )
+add_dependencies(${KJVCanOpener_TARGET} git_version_target)
 target_compile_options(${KJVCanOpener_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 if(NOT CONSOLE)

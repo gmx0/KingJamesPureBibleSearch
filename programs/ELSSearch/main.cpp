@@ -66,6 +66,10 @@ namespace {
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
+	static const QString g_constrGitVersion =
+	#include "../git_version.txt"
+	;
+
 }	// namespace
 
 // ============================================================================
@@ -508,7 +512,8 @@ int main(int argc, char *argv[])
 		((nArgsFound != 2) && ((nSearchType != ESTE_ELS) && (nSearchType != ESTE_FLS)) && !bTestMode) ||
 		((nArgsFound != 1) && bTestMode) ||
 		(bShowUsageHelp)) {
-		std::cerr << ELSSearch_APPNAME << " Version " << ELSSearch_VERSION_SEMVER << "\n\n";
+		std::cerr << ELSSearch_APPNAME << " Version " << ELSSearch_VERSION_SEMVER << "\n";
+		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <UUID-Index> <Words> [<Min-Letter-Skip> <Max-Letter-Skip>]\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("Reads the specified database and apophenic searches for the specified <Words> at\n").toUtf8().data();
 		std::cerr << QString("    ELS/FLS skip-distances from <Min-Letter-Skip> to <Max-Letter-Skip>.\n").toUtf8().data();

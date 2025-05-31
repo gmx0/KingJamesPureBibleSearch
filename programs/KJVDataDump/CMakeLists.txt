@@ -211,6 +211,7 @@ add_executable(${KJVDataDump_TARGET} ${GUI_TYPE}
 	${KJVDataDump_FORMS}
 	${KJVDataDump_RESOURCES}
 )
+add_dependencies(${KJVDataDump_TARGET} git_version_target)
 target_compile_options(${KJVDataDump_TARGET} PUBLIC ${MY_COMPILE_OPTIONS})
 
 target_link_libraries(${KJVDataDump_TARGET} PRIVATE

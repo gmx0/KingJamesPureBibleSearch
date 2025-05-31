@@ -33,6 +33,27 @@ endif()
 
 set(CMAKE_PROJECT_VERSION_PRERELEASE "AlphaTest" CACHE STRING "PreRelease Descriptor")		# Set to empty string for official release
 
+# Find Git executable
+find_program(GIT_EXECUTABLE git)
+if(NOT GIT_EXECUTABLE)
+	message(FATAL_ERROR "Git executable not found.")
+endif()
+
+# Custom command to get git describe output
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo_append R\"foo\( > ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${GIT_EXECUTABLE} describe --always --dirty=-dirty >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	COMMAND ${CMAKE_COMMAND} -E echo_append \)foo\" >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	VERBATIM
+)
+
+# Custom target that depends on the custom command
+add_custom_target(git_version_target
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+)
+
 project(KJPBS VERSION 4.0.0 DESCRIPTION "KJPBS" LANGUAGES ${LANGUAGES})
 project_genver(HEADER_FILE
 	DEFINES

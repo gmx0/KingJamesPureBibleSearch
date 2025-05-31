@@ -50,6 +50,10 @@ namespace {
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
 
+	static const QString g_constrGitVersion =
+	#include "../git_version.txt"
+	;
+
 }	// namespace
 
 // ============================================================================
@@ -128,7 +132,8 @@ int main(int argc, char *argv[])
 	}
 
 	if ((nArgsFound != 2) || (bUnknownOption)) {
-		std::cerr << KJVSearch_APPNAME << " Version " << KJVSearch_VERSION_SEMVER << "\n\n";
+		std::cerr << KJVSearch_APPNAME << " Version " << KJVSearch_VERSION_SEMVER << "\n";
+		std::cerr << "Git Version: " << g_constrGitVersion.trimmed().toUtf8().data() << "\n\n";
 		std::cerr << QString("Usage: %1 [options] <UUID-Index> <Phrase>\n\n").arg(argv[0]).toUtf8().data();
 		std::cerr << QString("Reads the specified database, searches for the specified Phrase\n").toUtf8().data();
 		std::cerr << QString("    and outputs Normal Indexes for all found matching references\n\n").toUtf8().data();
