@@ -40,22 +40,29 @@ if(NOT GIT_EXECUTABLE)
 endif()
 
 # Custom command to get git describe output
+set(GIT_VERSION_FILE ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt)
+set(GIT_VERSION_CHECK_FILE ${CMAKE_CURRENT_BINARY_DIR}/git_version_check.txt)
 add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo \#undef Q > ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo \#undef QUOTE >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo \#define Q\(text\) \#text >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo \#define QUOTE\(text\) Q\(text\) >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo_append \#define GIT_VERSION\  >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${GIT_EXECUTABLE} describe --always --dirty=-dirty >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
-	COMMAND ${CMAKE_COMMAND} -E echo \#define GIT_VERSION_STR QUOTE\(GIT_VERSION\) >> ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	OUTPUT ${GIT_VERSION_CHECK_FILE}
+	COMMAND ${CMAKE_COMMAND} -E echo \#undef Q > ${GIT_VERSION_CHECK_FILE}
+	COMMAND ${CMAKE_COMMAND} -E echo \#undef QUOTE >> ${GIT_VERSION_CHECK_FILE}
+	COMMAND ${CMAKE_COMMAND} -E echo \#define Q\(text\) \#text >> ${GIT_VERSION_CHECK_FILE}
+	COMMAND ${CMAKE_COMMAND} -E echo \#define QUOTE\(text\) Q\(text\) >> ${GIT_VERSION_CHECK_FILE}
+	COMMAND ${CMAKE_COMMAND} -E echo_append \#define GIT_VERSION\  >> ${GIT_VERSION_CHECK_FILE}
+	COMMAND ${GIT_EXECUTABLE} describe --always --dirty=-dirty >> ${GIT_VERSION_CHECK_FILE}
+	COMMAND ${CMAKE_COMMAND} -E echo \#define GIT_VERSION_STR QUOTE\(GIT_VERSION\) >> ${GIT_VERSION_CHECK_FILE}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	VERBATIM
 )
 
 # Custom target that depends on the custom command
 add_custom_target(git_version_target
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/git_version.txt
+	DEPENDS ${GIT_VERSION_CHECK_FILE}
+	BYPRODUCTS ${GIT_VERSION_FILE}
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GIT_VERSION_CHECK_FILE} ${GIT_VERSION_FILE}
+	COMMAND ${CMAKE_COMMAND} -E rm -f ${GIT_VERSION_CHECK_FILE}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	VERBATIM
 )
 
 project(KJPBS VERSION 4.0.0 DESCRIPTION "KJPBS" LANGUAGES ${LANGUAGES})
