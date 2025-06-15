@@ -345,7 +345,7 @@ CELSSearchMainWindow::CELSSearchMainWindow(CBibleDatabasePtr pBibleDatabase,
 
 	connect(ui->spinWidth, SIGNAL(valueChanged(int)), this, SLOT(en_widthSpinValueChanged(int)));
 	connect(ui->spinOffset, SIGNAL(valueChanged(int)), m_pLetterMatrixTableModel, SLOT(setOffset(int)));
-	connect(m_pLetterMatrixTableModel, SIGNAL(modelAboutToBeReset()), this, SLOT(en_letterMatrixLayoutAboutToChange()));
+	connect(m_pLetterMatrixTableModel, SIGNAL(modelAboutToBeReset()), this, SLOT(en_letterMatrixModelAboutToBeReset()));
 	connect(m_pLetterMatrixTableModel, SIGNAL(widthChanged(int)), this, SLOT(en_widthChanged(int)));
 	connect(m_pLetterMatrixTableModel, SIGNAL(offsetChanged(int)), this, SLOT(en_offsetChanged(int)));
 	connect(ui->cmbLetterCase, SIGNAL(currentIndexChanged(int)), this, SLOT(en_changedLetterCase(int)));
@@ -936,21 +936,25 @@ void CELSSearchMainWindow::en_changedSortOrder(int nIndex)
 
 void CELSSearchMainWindow::en_letterMatrixModelAboutToBeReset()
 {
-	QRect rcTableView = ui->tvLetterMatrix->rect();
-	int nRow = ui->tvLetterMatrix->rowAt(rcTableView.height()/2);
-	int nCol = ui->tvLetterMatrix->columnAt(0) + m_pLetterMatrixTableModel->columnCount()/2;
-	m_nMatrixIndexToCenter = m_pLetterMatrixTableModel->matrixIndexFromRowCol(nRow, nCol);
+	m_nMatrixIndexToCenter = m_pLetterMatrixTableModel->matrixIndexFromModelIndex(ui->tvLetterMatrix->currentIndex());
 }
 
 void CELSSearchMainWindow::en_widthChanged(int nWidth)
 {
 	Q_UNUSED(nWidth);
-	if (m_nMatrixIndexToCenter) ui->tvLetterMatrix->scrollTo(m_pLetterMatrixTableModel->modelIndexFromMatrixIndex(m_nMatrixIndexToCenter), QAbstractItemView::PositionAtCenter);
+	if (m_nMatrixIndexToCenter) {
+		ui->tvLetterMatrix->scrollTo(m_pLetterMatrixTableModel->modelIndexFromMatrixIndex(m_nMatrixIndexToCenter), QAbstractItemView::PositionAtCenter);
+		ui->tvLetterMatrix->setCurrentIndex(m_pLetterMatrixTableModel->modelIndexFromMatrixIndex(m_nMatrixIndexToCenter));
+	}
 }
 
 void CELSSearchMainWindow::en_offsetChanged(int nOffset)
 {
 	Q_UNUSED(nOffset);
+	if (m_nMatrixIndexToCenter) {
+		ui->tvLetterMatrix->scrollTo(m_pLetterMatrixTableModel->modelIndexFromMatrixIndex(m_nMatrixIndexToCenter), QAbstractItemView::PositionAtCenter);
+		ui->tvLetterMatrix->setCurrentIndex(m_pLetterMatrixTableModel->modelIndexFromMatrixIndex(m_nMatrixIndexToCenter));
+	}
 }
 
 void CELSSearchMainWindow::en_widthSpinValueChanged(int nWidth)
