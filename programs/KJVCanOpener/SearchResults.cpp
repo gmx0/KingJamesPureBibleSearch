@@ -1471,7 +1471,7 @@ CSearchResults::CSearchResults(CBibleDatabasePtr pBibleDatabase, QWidget *parent
 #if !defined(EMSCRIPTEN) && !defined(VNCSERVER) && !defined(IS_CONSOLE_APP)
 	m_pShowHighlightersInSearchResults = new QCheckBox(this);
 	m_pShowHighlightersInSearchResults->setObjectName(QString::fromUtf8("checkBoxShowHighlightersInSearchResults"));
-	m_pShowHighlightersInSearchResults->setText(tr("Show &Highlighting in Search Results", "MainMenu"));
+	m_pShowHighlightersInSearchResults->setText(tr("Show Hi&ghlighting in Search Results", "MainMenu"));
 	pLayout->addWidget(m_pShowHighlightersInSearchResults);
 #endif
 
