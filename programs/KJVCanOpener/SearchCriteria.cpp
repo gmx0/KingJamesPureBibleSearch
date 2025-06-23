@@ -84,11 +84,6 @@ QString CSearchCriteria::searchScopeDescription(CSearchCriteria::SEARCH_SCOPE_MO
 	return strScope;
 }
 
-QString CSearchCriteria::searchScopeDescription() const
-{
-	return searchScopeDescription(m_nSearchScopeMode);
-}
-
 // ============================================================================
 
 CSearchWithinModel::CSearchWithinModel(CBibleDatabasePtr pBibleDatabase, const CSearchCriteria &aSearchCriteria, QObject *pParent)
