@@ -70,8 +70,10 @@
 
 #if QT_VERSION >= 0x050000
 #include "version.h"
+#include "../git_version.txt"
 #else
 #include "version-487.h"
+#define GIT_VERSION_STR KJVCanOpener_VERSION
 #endif
 #include "PersistentSettings.h"
 #include "UserNotesDatabase.h"
@@ -131,6 +133,8 @@ namespace {
 	//////////////////////////////////////////////////////////////////////
 	// File-scoped constants
 	//////////////////////////////////////////////////////////////////////
+
+	const QString g_constrGitVersion = GIT_VERSION_STR;
 
 #ifndef IS_CONSOLE_APP
 
@@ -734,6 +738,9 @@ void CMyApplication::setSplashMessage(const QString &strMessage)
 		QString strSpecialVersion;
 #if defined(KJVCanOpener_VERSION_SPECIALBUILD)
 		strSpecialVersion = QString(KJVCanOpener_VERSION_SPECIALBUILD);
+		if (!strSpecialVersion.isEmpty() && !g_constrGitVersion.isEmpty()) {
+			strSpecialVersion += "<br>\n" + strOffsetSpace + g_constrGitVersion;
+		}
 #endif
 		if (!strSpecialVersion.isEmpty()) strSpecialVersion = "<br>\n" + strOffsetSpace + strSpecialVersion;
 		QString strStatus;
