@@ -306,6 +306,7 @@ CParsedPhrase::CParsedPhrase(CBibleDatabasePtr pBibleDatabase, bool bCaseSensiti
 	m_bCaseSensitive(bCaseSensitive),
 	m_bAccentSensitive(bAccentSensitive),
 	m_bExclude(bExclude),
+	m_nConstraint(PCTE_UNCONSTRAINED),
 	m_nActiveSubPhrase(-1),
 	m_bHasChanged(false)
 {
@@ -326,6 +327,7 @@ CParsedPhrase &CParsedPhrase::operator=(const CParsedPhrase &aSrc)
 	m_bCaseSensitive = aSrc.m_bCaseSensitive;
 	m_bAccentSensitive = aSrc.m_bAccentSensitive;
 	m_bExclude = aSrc.m_bExclude;
+	m_nConstraint = aSrc.m_nConstraint;
 	m_nActiveSubPhrase = aSrc.m_nActiveSubPhrase;
 
 	m_lstSubPhrases.clear();
@@ -363,6 +365,7 @@ bool CPhraseEntry::operator==(const CParsedPhrase &src) const
 	return ((m_bCaseSensitive == src.isCaseSensitive()) &&
 			(m_bAccentSensitive == src.isAccentSensitive()) &&
 			(m_bExclude == src.isExcluded()) &&
+			(m_nConstraint == src.constraint()) &&
 			(m_strPhrase.compare(src.phrase(), Qt::CaseSensitive) == 0));
 }
 bool CPhraseEntry::operator!=(const CParsedPhrase &src) const
@@ -439,8 +442,21 @@ const TPhraseTagList &CParsedPhrase::GetPhraseTagSearchResults() const
 	const CSubPhrase *subPhrase = m_lstSubPhrases.at(ndxMax).data();
 	for (unsigned int ndxWord=0; ndxWord<subPhrase->m_lstMatchMapping.size(); ++ndxWord) {
 		uint32_t ndxNormal = (subPhrase->m_lstMatchMapping.at(ndxWord) - subPhrase->m_nLevel + 1);
-		if (ndxNormal > 0)
-			m_cache_lstPhraseTagResults.append(TPhraseTag(m_pBibleDatabase->DenormalizeIndex(ndxNormal), subPhrase->phraseSize()));
+		if (ndxNormal > 0) {
+			TPhraseTag phraseTag(m_pBibleDatabase->DenormalizeIndex(ndxNormal), subPhrase->phraseSize());
+			Q_ASSERT(m_pBibleDatabase->completelyContains(phraseTag));
+			if (constraint() == PCTE_VERSE) {
+				if (!m_pBibleDatabase->versePhraseTag(phraseTag.relIndex()).completelyContains(m_pBibleDatabase.data(), phraseTag))
+					continue;
+			} else if (constraint() == PCTE_CHAPTER) {
+				if (!m_pBibleDatabase->chapterPhraseTag(phraseTag.relIndex()).completelyContains(m_pBibleDatabase.data(), phraseTag))
+					continue;
+			} else if (constraint() == PCTE_BOOK) {
+				if (!m_pBibleDatabase->bookPhraseTag(phraseTag.relIndex()).completelyContains(m_pBibleDatabase.data(), phraseTag))
+					continue;
+			}
+			m_cache_lstPhraseTagResults.append(phraseTag);
+		}
 	}
 	std::sort(m_cache_lstPhraseTagResults.begin(), m_cache_lstPhraseTagResults.end(), TPhraseTagListSortPredicate::ascendingLessThan);
 
@@ -453,7 +469,21 @@ const TPhraseTagList &CParsedPhrase::GetPhraseTagSearchResults() const
 		lstSubPhraseTags.reserve(static_cast<decltype(lstSubPhraseTags)::size_type>(subPhrase->m_lstMatchMapping.size()));
 		for (unsigned int ndxWord=0; ndxWord<subPhrase->m_lstMatchMapping.size(); ++ndxWord) {
 			uint32_t ndxNormal = (subPhrase->m_lstMatchMapping.at(ndxWord) - subPhrase->m_nLevel + 1);
-			if (ndxNormal > 0) lstSubPhraseTags.append(TPhraseTag(m_pBibleDatabase->DenormalizeIndex(ndxNormal), subPhrase->phraseSize()));
+			if (ndxNormal > 0) {
+				TPhraseTag phraseTag(m_pBibleDatabase->DenormalizeIndex(ndxNormal), subPhrase->phraseSize());
+				Q_ASSERT(m_pBibleDatabase->completelyContains(phraseTag));
+				if (constraint() == PCTE_VERSE) {
+					if (!m_pBibleDatabase->versePhraseTag(phraseTag.relIndex()).completelyContains(m_pBibleDatabase.data(), phraseTag))
+						continue;
+				} else if (constraint() == PCTE_CHAPTER) {
+					if (!m_pBibleDatabase->chapterPhraseTag(phraseTag.relIndex()).completelyContains(m_pBibleDatabase.data(), phraseTag))
+						continue;
+				} else if (constraint() == PCTE_BOOK) {
+					if (!m_pBibleDatabase->bookPhraseTag(phraseTag.relIndex()).completelyContains(m_pBibleDatabase.data(), phraseTag))
+						continue;
+				}
+				lstSubPhraseTags.append(phraseTag);
+			}
 		}
 		std::sort(lstSubPhraseTags.begin(), lstSubPhraseTags.end(), TPhraseTagListSortPredicate::ascendingLessThan);
 

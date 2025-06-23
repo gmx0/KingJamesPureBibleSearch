@@ -719,6 +719,21 @@ typedef std::map<CRelIndex, CFootnoteEntry, RelativeIndexSortPredicate> TFootnot
 
 class CParsedPhrase;		// Forward declaration
 
+// PHRASE_CONSTRAINED_TO_ENUM -- Similar to SEARCH_SCOPE_MODE_ENUM, but for
+//	contraining the individual phrase results, rather than intersecting results
+//
+// Note: These values can't be changed without breaking KJS files! (not to mention
+//			persistent settings).  Note: they are "little endian" order for
+//			allowing future more significant constraints without changing the list:
+enum PHRASE_CONSTRAINED_TO_ENUM {
+	PCTE_UNCONSTRAINED = 0,				// Equivalent to "Whole Bible"
+	PCTE_VERSE = 1,						// Constrained to single verse
+	PCTE_CHAPTER = 2,					// Constrained to single chapter
+	PCTE_BOOK = 3,						// Constrained to single book
+};
+extern QString phraseConstraintDescription(PHRASE_CONSTRAINED_TO_ENUM nConstraint);
+Q_DECLARE_METATYPE(PHRASE_CONSTRAINED_TO_ENUM)
+
 class CPhraseEntry
 {
 public:
@@ -747,6 +762,9 @@ public:
 	inline bool isDisabled() const { return m_bDisabled; }
 	inline void setDisabled(bool bDisabled) { m_bDisabled = bDisabled; }
 
+	inline PHRASE_CONSTRAINED_TO_ENUM constraint() const { return m_nConstraint; }
+	inline void setConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint) { m_nConstraint = nConstraint; }
+
 	inline QVariant extraInfo() const { return m_varExtraInfo; }
 	inline void setExtraInfo(const QVariant &varExtraInfo) { m_varExtraInfo = varExtraInfo; }
 
@@ -756,6 +774,7 @@ public:
 				(m_bAccentSensitive == src.m_bAccentSensitive) &&
 				(m_bExclude == src.m_bExclude) &&
 				// Don't compare m_bDisabled because that doesn't affect "equality"
+				(m_nConstraint == src.m_nConstraint) &&
 				(m_strPhrase.compare(src.m_strPhrase, Qt::CaseSensitive) == 0));
 	}
 	inline bool operator!=(const CPhraseEntry &src) const
@@ -767,9 +786,35 @@ public:
 	bool operator!=(const CParsedPhrase &src) const;		// Implemented in PhraseParser.cpp, where CParsedPhrase is defined
 
 	static const QChar encCharCaseSensitive() { return QChar(0xA7); } 			// Section Sign = Case-Sensitive
-	static const QChar encCharAccentSensitive() { return QChar(0xA4); }			// Current Sign = Accent-Sensitive
+	static const QChar encCharAccentSensitive() { return QChar(0xA4); }		// Current Sign = Accent-Sensitive
 	static const QChar encCharExclude() { return QChar(0x2209); }				// Not an Element of = Exclude
 	static const QChar encCharDisabled() { return QChar(0xAC); }				// Not Sign = Disable flag
+	static const QChar encCharConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint)
+	{
+		switch (nConstraint) {
+			case PCTE_VERSE:
+				return QChar(0x2460);			// Circled Digit 1
+			case PCTE_CHAPTER:
+				return QChar(0x2461);			// Circled Digit 2
+			case PCTE_BOOK:
+				return QChar(0x2462);			// Circled Digit 3
+			default:
+				break;
+		}
+		return QChar();							// Unconstrained is a null character
+	}
+	static PHRASE_CONSTRAINED_TO_ENUM constraintFromEncChar(const QChar &chr)
+	{
+		if (chr == encCharConstraint(PCTE_VERSE)) {
+			return PCTE_VERSE;
+		} else if (chr == encCharConstraint(PCTE_CHAPTER)) {
+			return PCTE_CHAPTER;
+		} else if (chr == encCharConstraint(PCTE_BOOK)) {
+			return PCTE_BOOK;
+		} else {
+			return PCTE_UNCONSTRAINED;
+		}
+	}
 
 	// From Qt 5.13.0 QtPrivate in qhashfunctions.h
 	struct QHashCombineCommutative {
@@ -799,6 +844,7 @@ private:
 	bool m_bAccentSensitive;
 	bool m_bExclude;
 	bool m_bDisabled;
+	PHRASE_CONSTRAINED_TO_ENUM m_nConstraint;					// Search constraint for this phrase
 	QString m_strPhrase;
 	QVariant m_varExtraInfo;	// Extra user info for specific uses of this structure
 };
@@ -825,9 +871,17 @@ __attribute__((const)) inline uint qHash(const CPhraseEntry &key, uint seed = 0)
 {
 	// Note: Aren't hashing "disable" because it doesn't affect the main key value equality
 #if QT_VERSION >= 0x060000
-	std::vector<CPhraseEntry::QHashCombineCommutative::result_type> vctHashes = { qHash(key.text()), qHash((key.caseSensitive() ? 4u : 0u) + (key.accentSensitive() ? 2u : 0u) + (key.isExcluded() ? 1u : 0u)) };
+	std::vector<CPhraseEntry::QHashCombineCommutative::result_type> vctHashes =
+		{
+			qHash(key.text()),
+			qHash(((CPhraseEntry::QHashCombineCommutative::result_type)key.constraint() << 3) + (key.caseSensitive() ? 4u : 0u) + (key.accentSensitive() ? 2u : 0u) + (key.isExcluded() ? 1u : 0u))
+		};
 #else
-	std::vector<uint> vctHashes = { qHash(key.text()), qHash((key.caseSensitive() ? 4u : 0u) + (key.accentSensitive() ? 2u : 0u) + (key.isExcluded() ? 1u : 0u)) };
+	std::vector<uint> vctHashes =
+		{
+			qHash(key.text()),
+			qHash(((uint)key.constraint() << 3) + (key.caseSensitive() ? 4u : 0u) + (key.accentSensitive() ? 2u : 0u) + (key.isExcluded() ? 1u : 0u))
+		};
 #endif
 	return std::accumulate(vctHashes.begin(), vctHashes.end(), seed, CPhraseEntry::QHashCombineCommutative());
 }

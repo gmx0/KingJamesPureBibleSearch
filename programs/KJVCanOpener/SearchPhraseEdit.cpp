@@ -187,7 +187,7 @@ CPhraseLineEdit::CPhraseLineEdit(CBibleDatabasePtr pBibleDatabase, QWidget *pPar
 	connect(m_pCompleter, SIGNAL(activated(QModelIndex)), this, SLOT(insertCompletion(QModelIndex)));
 	connect(CPersistentSettings::instance(), SIGNAL(changedSearchPhraseCompleterFilterMode(SEARCH_COMPLETION_FILTER_MODE_ENUM)), this, SLOT(en_changedSearchPhraseCompleterFilterMode(SEARCH_COMPLETION_FILTER_MODE_ENUM)));
 	connect(m_pButtonDroplist, SIGNAL(clicked()), this, SLOT(en_dropCommonPhrasesClicked()));
-	connect(m_pCommonPhrasesCompleter, SIGNAL(activated(QString)), this, SLOT(insertCommonPhraseCompletion(QString)));
+	connect(m_pCommonPhrasesCompleter, SIGNAL(activated(QModelIndex)), this, SLOT(insertCommonPhraseCompletion(QModelIndex)));
 	connect(this, SIGNAL(phraseChanged()), this, SLOT(en_phraseChanged()));		// Handle internal flag for cross-thread changes
 
 	m_pStatusAction = new QAction(this);
@@ -214,6 +214,7 @@ void CPhraseLineEdit::setupPhrase(const TPhraseSettings &aPhrase)
 		emit changeCaseSensitive(aPhrase.m_bCaseSensitive);
 		emit changeAccentSensitive(aPhrase.m_bAccentSensitive);
 		emit changeExclude(aPhrase.m_bExclude);
+		emit changeConstraint(aPhrase.m_nConstraint);
 		setPlainText(aPhrase.m_strPhrase);
 	}
 	UpdateCompleter();
@@ -255,13 +256,24 @@ void CPhraseLineEdit::setExclude(bool bExclude)
 	}
 }
 
+void CPhraseLineEdit::setConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint)
+{
+	CParsedPhrase::setConstraint(nConstraint);
+
+	if (!updateInProgress()) {
+		// No need to trigger UpdateCompleter() here as constraint has no bearing on completion
+		emit phraseChanged();				// But, we need to recalculate our search results
+		emit changeConstraint(nConstraint);
+	}
+}
+
 void CPhraseLineEdit::setFromPhraseEntry(const CPhraseEntry &aPhraseEntry, bool bFindWords)
 {
 	{
 		CDoUpdate doUpdate(this);				// Don't send update for the text clear, we'll send it later after we set it
 		clear();
 	}
-	insertCommonPhraseCompletion(aPhraseEntry.textEncoded());
+	insertCommonPhraseCompletion(aPhraseEntry);
 	Q_UNUSED(bFindWords);						// PhraseLineEdit will always find words on insertion
 }
 
@@ -275,7 +287,14 @@ void CPhraseLineEdit::insertCompletion(const QModelIndex &index)
 	CParsedPhrase::insertCompletion(textCursor(), index.data(Qt::DisplayRole).toString());
 }
 
-void CPhraseLineEdit::insertCommonPhraseCompletion(const QString &completion)
+void CPhraseLineEdit::insertCommonPhraseCompletion(const QModelIndex &index)
+{
+	if (index.isValid()) {
+		insertCommonPhraseCompletion(m_pCommonPhrasesCompleter->model()->data(index, CPhraseListModel::PHRASE_ENTRY_ROLE).value<CPhraseEntry>());
+	}
+}
+
+void CPhraseLineEdit::insertCommonPhraseCompletion(const CPhraseEntry &aPhraseEntry)
 {
 	CPhraseCursor cursor(textCursor(), m_pBibleDatabase.data(), false);		// Hyphens aren't considered as word separators for phrases
 	cursor.clearSelection();
@@ -283,13 +302,14 @@ void CPhraseLineEdit::insertCommonPhraseCompletion(const QString &completion)
 	bool bOldCaseSensitive = isCaseSensitive();
 	bool bOldAccentSensitive = isAccentSensitive();
 	bool bOldExclude = isExcluded();
+	PHRASE_CONSTRAINED_TO_ENUM nConstraint = constraint();
 	{
 		CDoUpdate doUpdate(this);				// Hold-over to update everything at once
-		CPhraseEntry phrase(completion);
-		cursor.insertText(phrase.text());
-		setCaseSensitive(phrase.caseSensitive());
-		setAccentSensitive(phrase.accentSensitive());
-		setExclude(phrase.isExcluded());
+		cursor.insertText(aPhraseEntry.text());
+		setCaseSensitive(aPhraseEntry.caseSensitive());
+		setAccentSensitive(aPhraseEntry.accentSensitive());
+		setExclude(aPhraseEntry.isExcluded());
+		setConstraint(aPhraseEntry.constraint());
 		// Release update here
 	}
 	if (!updateInProgress()) {
@@ -298,6 +318,7 @@ void CPhraseLineEdit::insertCommonPhraseCompletion(const QString &completion)
 		if (bOldCaseSensitive != isCaseSensitive()) emit changeCaseSensitive(isCaseSensitive());
 		if (bOldAccentSensitive != isAccentSensitive()) emit changeAccentSensitive(isAccentSensitive());
 		if (bOldExclude != isExcluded()) emit changeExclude(isExcluded());
+		if (nConstraint != constraint()) emit changeConstraint(constraint());
 	}
 }
 
@@ -585,8 +606,16 @@ CSearchPhraseEdit::CSearchPhraseEdit(CBibleDatabasePtr pBibleDatabase, bool bHav
 	setTabOrder(ui.chkCaseSensitive, ui.chkAccentSensitive);
 	setTabOrder(ui.chkAccentSensitive, ui.chkExclude);
 	setTabOrder(ui.chkExclude, ui.chkDisable);
-	setTabOrder(ui.chkDisable, ui.editPhrase->getDropListButton());
+	setTabOrder(ui.chkDisable, ui.comboConstrainTo);
+	setTabOrder(ui.comboConstrainTo, ui.editPhrase->getDropListButton());
 	setTabOrder(ui.editPhrase->getDropListButton(), ui.buttonRemove);
+
+	// --------------------------------------------------------------
+
+	ui.comboConstrainTo->addItem(tr("Unconstrained", "PhraseConstraintMenu"), PCTE_UNCONSTRAINED);
+	ui.comboConstrainTo->addItem(tr("Book", "PhraseConstraintMenu"), PCTE_BOOK);
+	ui.comboConstrainTo->addItem(tr("Chapter", "PhraseConstraintMenu"), PCTE_CHAPTER);
+	ui.comboConstrainTo->addItem(tr("Verse", "PhraseConstraintMenu"), PCTE_VERSE);
 
 	// --------------------------------------------------------------
 
@@ -594,6 +623,7 @@ CSearchPhraseEdit::CSearchPhraseEdit(CBibleDatabasePtr pBibleDatabase, bool bHav
 	ui.chkAccentSensitive->setChecked(ui.editPhrase->isAccentSensitive());
 	ui.chkExclude->setChecked(ui.editPhrase->isExcluded());
 	ui.chkDisable->setChecked(parsedPhrase()->isDisabled());
+	ui.comboConstrainTo->setCurrentIndex(ui.comboConstrainTo->findData(ui.editPhrase->constraint()));
 	ui.buttonAddPhrase->setEnabled(false);
 	ui.buttonDelPhrase->setEnabled(false);
 	ui.buttonClear->setEnabled(true);
@@ -627,6 +657,8 @@ CSearchPhraseEdit::CSearchPhraseEdit(CBibleDatabasePtr pBibleDatabase, bool bHav
 	connect(ui.chkExclude, SIGNAL(clicked(bool)), this, SLOT(en_ExcludeChanged(bool)));
 	connect(ui.editPhrase, SIGNAL(changeExclude(bool)), this, SLOT(en_ExcludeChanged(bool)));
 	connect(ui.chkDisable, SIGNAL(clicked(bool)), this, SLOT(setDisabled(bool)));
+	connect(ui.comboConstrainTo, SIGNAL(currentIndexChanged(int)), this, SLOT(en_ConstraintComboChanged(int)));
+	connect(ui.editPhrase, SIGNAL(changeConstraint(PHRASE_CONSTRAINED_TO_ENUM)), this, SLOT(en_ConstraintChanged(PHRASE_CONSTRAINED_TO_ENUM)));
 	connect(ui.buttonAddPhrase, SIGNAL(clicked()), this, SLOT(en_phraseAdd()));
 	connect(ui.buttonDelPhrase, SIGNAL(clicked()), this, SLOT(en_phraseDel()));
 	connect(ui.buttonClear, SIGNAL(clicked()), this, SLOT(en_phraseClear()));
@@ -817,6 +849,21 @@ void CSearchPhraseEdit::en_ExcludeChanged(bool bExclude)
 	m_bUpdateInProgress = false;
 }
 
+void CSearchPhraseEdit::en_ConstraintChanged(PHRASE_CONSTRAINED_TO_ENUM nConstraint)
+{
+	if (m_bUpdateInProgress) return;
+	m_bUpdateInProgress = true;
+	ui.comboConstrainTo->setCurrentIndex(ui.comboConstrainTo->findData(nConstraint));
+	ui.editPhrase->setConstraint(nConstraint);
+	m_bUpdateInProgress = false;
+}
+
+void CSearchPhraseEdit::en_ConstraintComboChanged(int nIndex)
+{
+	if (nIndex == -1) return;
+	en_ConstraintChanged(static_cast<PHRASE_CONSTRAINED_TO_ENUM>(ui.comboConstrainTo->itemData(nIndex).toInt()));
+}
+
 void CSearchPhraseEdit::setDisabled(bool bDisabled)
 {
 	bool bCurrentDisable = parsedPhrase()->isDisabled();
@@ -828,6 +875,7 @@ void CSearchPhraseEdit::setDisabled(bool bDisabled)
 	ui.chkCaseSensitive->setEnabled(!bDisabled);
 	ui.chkAccentSensitive->setEnabled(!bDisabled);
 	ui.chkExclude->setEnabled(!bDisabled);
+	ui.comboConstrainTo->setEnabled(!bDisabled);
 	ui.editPhrase->getDropListButton()->setEnabled(!bDisabled);
 	setPhraseButtonEnables();
 	m_bUpdateInProgress = false;
@@ -859,6 +907,7 @@ void CSearchPhraseEdit::en_phraseClear()
 	en_AccentSensitiveChanged(false);
 	en_ExcludeChanged(false);
 	setDisabled(false);
+	en_ConstraintChanged(PCTE_UNCONSTRAINED);
 	focusEditor();
 }
 

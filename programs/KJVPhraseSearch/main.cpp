@@ -405,6 +405,7 @@ int main(int argc, char *argv[])
 
 			// If found the specified number of times, add to overall list as a PhraseEntry so we can
 			//		remove duplicates, etc:
+			// TODO : Change this to use CPhraseEntry that sets the flags and constraints, etc., instead of QString version:
 			lstOverallResults.append(lstPhrase.join(' '));
 		}
 		++nNormalIndex;

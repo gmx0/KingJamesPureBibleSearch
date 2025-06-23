@@ -173,11 +173,15 @@ public:
 	virtual bool isExcluded() const { return m_bExclude; }
 	virtual void setExclude(bool bExclude) { m_bExclude = bExclude; }
 
+	virtual PHRASE_CONSTRAINED_TO_ENUM constraint() const { return m_nConstraint; }
+	virtual void setConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint) { m_nConstraint = nConstraint; }
+
 	bool operator==(const CParsedPhrase &src) const
 	{
 		return ((m_bCaseSensitive == src.m_bCaseSensitive) &&
 				(m_bAccentSensitive == src.m_bAccentSensitive) &&
 				(m_bExclude == src.m_bExclude) &&
+				(m_nConstraint == src.m_nConstraint) &&
 				(phrase().compare(src.phrase(), Qt::CaseSensitive) == 0));
 	}
 	bool operator!=(const CParsedPhrase &src) const
@@ -190,6 +194,7 @@ public:
 		return ((m_bCaseSensitive == src.caseSensitive()) &&
 				(m_bAccentSensitive == src.accentSensitive()) &&
 				(m_bExclude == src.isExcluded()) &&
+				(m_nConstraint == src.constraint()) &&
 				(phrase().compare(src.text(), Qt::CaseSensitive) == 0));
 	}
 	bool operator!=(const CPhraseEntry &src) const
@@ -204,6 +209,7 @@ public:
 			setAccentSensitive(aPhraseEntry.accentSensitive());
 			setExclude(aPhraseEntry.isExcluded());
 			setIsDisabled(aPhraseEntry.isDisabled());
+			setConstraint(aPhraseEntry.constraint());
 			ParsePhrase(aPhraseEntry.text(), bFindWords);
 		}
 	}
@@ -239,7 +245,7 @@ protected:
 	CBibleDatabasePtr m_pBibleDatabase;
 	mutable TPhraseTagList m_cache_lstPhraseTagResults;		// Cached Denormalized Search Results converted to phrase tags (Set on call to GetPhraseTagSearchResults, cleared on ClearCache)
 	// -------
-	mutable bool m_bIsDuplicate;							// Indicates this phrase is exact duplicate of another phrase.  Set/Cleared by parent phraseChanged logic.
+	mutable bool m_bIsDuplicate;								// Indicates this phrase is exact duplicate of another phrase.  Set/Cleared by parent phraseChanged logic.
 	mutable bool m_bIsDisabled;								// Indicates this phrase is disabled.  Set/Cleared by parent phraseChanged logic
 	mutable TPhraseTagList m_lstScopedPhraseTagResults;		// List of Denormalized Search Results from Scope.  Set/Cleared by parent phraseChanged logic and buildScopedResultsInParsedPhrases on VerseListModel.  The size of this list is the GetContributingNumberOfMatches
 	mutable TPhraseTagList m_lstWithinPhraseTagResults;		// List of Denormalized Search Results from within Selected Search Documents (but not scoped with other phrases).  Set/Cleared by parent phraseChanged logic and buildScopedResultsInParsedPhrases on VerseListModel.  The size of this list is the GetNumberOfMatchesWithin
@@ -247,6 +253,7 @@ protected:
 	bool m_bCaseSensitive;
 	bool m_bAccentSensitive;
 	bool m_bExclude;
+	PHRASE_CONSTRAINED_TO_ENUM m_nConstraint;					// Search constraint for this phrase
 
 	int m_nActiveSubPhrase;
 	TSubPhraseList m_lstSubPhrases;

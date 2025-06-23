@@ -833,6 +833,7 @@ CPhraseEntry::CPhraseEntry(const QString &strEncodedText, const QVariant &varExt
 		m_bAccentSensitive(false),
 		m_bExclude(false),
 		m_bDisabled(false),
+		m_nConstraint(PCTE_UNCONSTRAINED),
 		m_varExtraInfo(varExtraInfo)
 {
 	setTextEncoded(strEncodedText);
@@ -855,6 +856,7 @@ void CPhraseEntry::clear()
 	m_bAccentSensitive = false;
 	m_bExclude = false;
 	m_bDisabled = false;
+	m_nConstraint = PCTE_UNCONSTRAINED;
 	m_varExtraInfo.clear();
 }
 
@@ -866,6 +868,7 @@ void CPhraseEntry::setFromPhrase(const CParsedPhrase &aPhrase)
 	m_bAccentSensitive = aPhrase.isAccentSensitive();
 	m_bExclude = aPhrase.isExcluded();
 	m_bDisabled = aPhrase.isDisabled();
+	m_nConstraint = aPhrase.constraint();
 }
 
 QString CPhraseEntry::textEncoded() const
@@ -874,6 +877,7 @@ QString CPhraseEntry::textEncoded() const
 
 	// The order here matters as we will always read/write the special flags in order
 	//		so we don't need a complete parser to allow any arbitrary order:
+	strText += encCharConstraint(constraint());
 	if (isDisabled()) strText += encCharDisabled();
 	if (isExcluded()) strText += encCharExclude();
 	if (accentSensitive()) strText += encCharAccentSensitive();
@@ -897,35 +901,69 @@ void CPhraseEntry::setTextEncoded(const QString &strText)
 	// The order here matters as we will always read/write the special flags in order
 	//		so we don't need a complete parser to allow any arbitrary order:
 
+	if (strTextToSet.startsWith(encCharConstraint(PCTE_VERSE)) ||
+		strTextToSet.startsWith(encCharConstraint(PCTE_CHAPTER)) ||
+		strTextToSet.startsWith(encCharConstraint(PCTE_BOOK))) {
+		setConstraint(constraintFromEncChar(strTextToSet.at(0)));
+		strTextToSet = strTextToSet.mid(1);				// Remove the special constraint flag
+	} else {
+		setConstraint(PCTE_UNCONSTRAINED);
+	}
+
 	if (strTextToSet.startsWith(encCharDisabled())) {
-		strTextToSet = strTextToSet.mid(1);				// Remove the special disable flag
 		setDisabled(true);
+		strTextToSet = strTextToSet.mid(1);				// Remove the special disable flag
 	} else {
 		setDisabled(false);
 	}
 
 	if (strTextToSet.startsWith(encCharExclude())) {
-		strTextToSet = strTextToSet.mid(1);
 		setExclude(true);
+		strTextToSet = strTextToSet.mid(1);				// Remove the special exclude flag
 	} else {
 		setExclude(false);
 	}
 
 	if (strTextToSet.startsWith(encCharAccentSensitive())) {
-		strTextToSet = strTextToSet.mid(1);
 		setAccentSensitive(true);
+		strTextToSet = strTextToSet.mid(1);				// Remove the special accent-sensitive flag
 	} else {
 		setAccentSensitive(false);
 	}
 
 	if (strTextToSet.startsWith(encCharCaseSensitive())) {
-		strTextToSet = strTextToSet.mid(1);				// Remove the special case-sensitive flag
 		setCaseSensitive(true);
+		strTextToSet = strTextToSet.mid(1);				// Remove the special case-sensitive flag
 	} else {
 		setCaseSensitive(false);
 	}
 
 	setText(strTextToSet);
+}
+
+QString phraseConstraintDescription(PHRASE_CONSTRAINED_TO_ENUM nConstraint)
+{
+	QString strConstraint;
+
+	switch (nConstraint) {
+		case (PCTE_UNCONSTRAINED):
+// Return empty string for Unconstrained
+//			strConstraint = QObject::tr("Unconstrained", "PhraseConstraint");
+			break;
+		case (PCTE_BOOK):
+			strConstraint = QObject::tr("Constrained to Book", "PhraseConstraint");
+			break;
+		case (PCTE_CHAPTER):
+			strConstraint = QObject::tr("Constrained to Chapter", "PhraseConstraint");
+			break;
+		case (PCTE_VERSE):
+			strConstraint = QObject::tr("Constrained to Verse", "PhraseConstraint");
+			break;
+		default:
+			break;
+	}
+
+	return strConstraint;
 }
 
 // ============================================================================

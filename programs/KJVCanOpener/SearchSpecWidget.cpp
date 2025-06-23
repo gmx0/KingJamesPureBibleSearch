@@ -227,11 +227,12 @@ void CSearchSpecWidget::readKJVSearchFile(QSettings &kjsFile, const QString &str
 		if (ndx == 0) pFirstSearchPhraseEditor = pPhraseEditor;
 		kjsFile.setArrayIndex(ndx);
 		TPhraseSettings aPhrase;
+		aPhrase.m_strPhrase = kjsFile.value("Phrase").toString();
 		aPhrase.m_bCaseSensitive = kjsFile.value("CaseSensitive", false).toBool();
 		aPhrase.m_bAccentSensitive = kjsFile.value("AccentSensitive", false).toBool();
 		aPhrase.m_bExclude = kjsFile.value("Exclude", false).toBool();
-		aPhrase.m_strPhrase = kjsFile.value("Phrase").toString();
 		aPhrase.m_bDisabled = kjsFile.value("Disabled", false).toBool();
+		aPhrase.m_nConstraint = static_cast<PHRASE_CONSTRAINED_TO_ENUM>(kjsFile.value("Constraint", PCTE_UNCONSTRAINED).toInt());
 		pPhraseEditor->setupPhrase(aPhrase);
 	}
 	// But, always open at least the minimum number of empty search phrases specified:
@@ -270,6 +271,7 @@ void CSearchSpecWidget::writeKJVSearchFile(QSettings &kjsFile, const QString &st
 		kjsFile.setValue("AccentSensitive", m_lstSearchPhraseEditors.at(ndx)->parsedPhrase()->isAccentSensitive());
 		kjsFile.setValue("Exclude", m_lstSearchPhraseEditors.at(ndx)->parsedPhrase()->isExcluded());
 		kjsFile.setValue("Disabled", m_lstSearchPhraseEditors.at(ndx)->parsedPhrase()->isDisabled());
+		kjsFile.setValue("Constraint", m_lstSearchPhraseEditors.at(ndx)->parsedPhrase()->constraint());
 		ndxCurrent++;
 	}
 	kjsFile.endArray();
@@ -505,25 +507,27 @@ QString CSearchSpecWidget::searchPhraseSummaryText() const
 	if (nNumPhrases > 1) strSummary += "\n";
 	for (int ndx=0; ndx<mdlPhrases.rowCount(); ++ndx) {
 		const CPhraseEntry &aPhrase = mdlPhrases.index(ndx).data(CPhraseListModel::PHRASE_ENTRY_ROLE).value<CPhraseEntry>();
+		QString strConstraint = phraseConstraintDescription(aPhrase.constraint());
+		if (!strConstraint.isEmpty()) strConstraint = " (" + strConstraint + ")";
 		if (nNumPhrases > 1) {
 			if (!aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_bExclude) {
 				if (!bExclude) {
 					if (nScope != CSearchCriteria::SSME_UNSCOPED) {
-						strSummary += QString("    \"%1\" ").arg(mdlPhrases.index(ndx).data().toString()) +
+						strSummary += QString("    \"%1\"%2 ").arg(mdlPhrases.index(ndx).data().toString()).arg(strConstraint) +
 										tr("(Found %n Time(s), %1 in Scope)", "Statistics", aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumMatchesWithin)
 											.arg(aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumContributingMatches) + "\n";
 					} else {
-						strSummary += QString("    \"%1\" ").arg(mdlPhrases.index(ndx).data().toString()) +
+						strSummary += QString("    \"%1\"%2 ").arg(mdlPhrases.index(ndx).data().toString()).arg(strConstraint) +
 										tr("(Found %n Time(s))", "Statistics", aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumMatchesWithin) + "\n";
 						Q_ASSERT(aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumMatchesWithin == aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumContributingMatches);
 					}
 				} else {
-					strSummary += QString("    \"%1\" ").arg(mdlPhrases.index(ndx).data().toString()) +
+					strSummary += QString("    \"%1\"%2 ").arg(mdlPhrases.index(ndx).data().toString()).arg(strConstraint) +
 									tr("(Found %n Time(s), %1 in Scope and not removed by exclusions)", "Statistics", aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumMatchesWithin)
 										.arg(aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumContributingMatches) + "\n";
 				}
 			} else {
-				strSummary += QString("    \"%1\" ").arg(mdlPhrases.index(ndx).data().toString()) +
+				strSummary += QString("    \"%1\"%2 ").arg(mdlPhrases.index(ndx).data().toString()).arg(strConstraint) +
 								"(" +
 								tr("Found %n Time(s)", "Statistics", aPhrase.extraInfo().value<TPhraseOccurrenceInfo>().m_nNumMatchesWithin) +
 								", " +
@@ -531,7 +535,7 @@ QString CSearchSpecWidget::searchPhraseSummaryText() const
 								")\n";
 			}
 		} else {
-			strSummary += QString("\"%1\"\n").arg(mdlPhrases.index(ndx).data().toString());
+			strSummary += QString("\"%1\"%2\n").arg(mdlPhrases.index(ndx).data().toString()).arg(strConstraint);
 		}
 	}
 	if (bCaseSensitive || bAccentSensitive || bExclude) {

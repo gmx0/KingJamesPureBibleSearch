@@ -1245,9 +1245,8 @@ void CKJVCanOpener::savePersistentSettings(bool bSaveLastSearchOnly)
 		settings.endGroup();
 	}
 
-	// Last Search:
+	// Remove old top-level artifacts that's no longer used, if this is the KJV:
 	if (m_pBibleDatabase->compatibilityUUID().compare(bibleDescriptor(BDE_KJV).m_strUUID, Qt::CaseInsensitive) == 0) {
-		// Remove old top-level, if this is the KJV:
 		settings.beginWriteArray(constrUserSearchPhrasesGroup);
 		settings.remove("");
 		settings.endArray();
@@ -1256,6 +1255,7 @@ void CKJVCanOpener::savePersistentSettings(bool bSaveLastSearchOnly)
 		settings.remove(constrLastSearchGroup);
 	}
 
+	// Last Search:
 	m_pSearchSpecWidget->writeKJVSearchFile(settings, groupCombine(m_pBibleDatabase->compatibilityUUID(), constrLastSearchGroup));
 
 	// User Search Phrases Settings:
@@ -1273,6 +1273,7 @@ void CKJVCanOpener::savePersistentSettings(bool bSaveLastSearchOnly)
 		settings.setValue("CaseSensitive", phrases.at(ndx).caseSensitive());
 		settings.setValue("AccentSensitive", phrases.at(ndx).accentSensitive());
 		settings.setValue("Exclude", phrases.at(ndx).isExcluded());
+		// Note: Not saving constraint since it isn't part of the actual text of the phrase
 	}
 	settings.endArray();
 
@@ -1585,8 +1586,9 @@ void CKJVCanOpener::restorePersistentSettings(bool bAppRestarting)
 				// User Search Phrases Settings:
 				CPhraseList lstUserPhrases;
 				int nPhrases;
+
+				// Move old deprecated Bible Database settings to new UUID for backward compatibility:
 				if (m_pBibleDatabase->compatibilityUUID().compare(bibleDescriptor(BDE_KJV).m_strUUID, Qt::CaseInsensitive) == 0) {
-					// Move old Bible Database settings to new UUID;
 					nPhrases = settings.beginReadArray(constrUserSearchPhrasesGroup);
 					if (nPhrases != 0) {
 						lstUserPhrases.reserve(lstUserPhrases.size() + nPhrases);
@@ -1603,6 +1605,7 @@ void CKJVCanOpener::restorePersistentSettings(bool bAppRestarting)
 					}
 					settings.endArray();
 				}
+
 				nPhrases = settings.beginReadArray(groupCombine(m_pBibleDatabase->compatibilityUUID(), constrUserSearchPhrasesGroup));
 				if (nPhrases != 0) {
 					lstUserPhrases.reserve(lstUserPhrases.size() + nPhrases);
@@ -1613,6 +1616,7 @@ void CKJVCanOpener::restorePersistentSettings(bool bAppRestarting)
 						phrase.setCaseSensitive(settings.value("CaseSensitive", false).toBool());
 						phrase.setAccentSensitive(settings.value("AccentSensitive", false).toBool());
 						phrase.setExclude(settings.value("Exclude", false).toBool());
+						// Note: Not saving constraint since it isn't part of the actual text of the phrase
 						if (phrase.text().isEmpty()) continue;
 						lstUserPhrases.append(phrase);
 					}

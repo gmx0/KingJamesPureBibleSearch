@@ -51,20 +51,23 @@ class CMatchingPhrasesListModel;
 
 // ============================================================================
 
+// TODO : Smash into CPhraseEntry and get rid of this struct:
 struct TPhraseSettings {
 	TPhraseSettings()
 		:	m_bCaseSensitive(false),
 			m_bAccentSensitive(false),
 			m_bExclude(false),
-			m_bDisabled(false)
+			m_bDisabled(false),
+			m_nConstraint(PCTE_UNCONSTRAINED)
 	{
 	}
 
+	QString m_strPhrase;
 	bool m_bCaseSensitive;
 	bool m_bAccentSensitive;
 	bool m_bExclude;
-	QString m_strPhrase;
 	bool m_bDisabled;
+	PHRASE_CONSTRAINED_TO_ENUM m_nConstraint;
 };
 
 class CPhraseLineEdit : public CSingleLineTextEdit, public CParsedPhrase
@@ -93,6 +96,9 @@ public:
 	inline bool isDisabled() const { Q_ASSERT(false); return false; }									// Call on either CSearchPhraseEdit or CParsedPhrase
 	inline void setIsDisabled(bool bIsDisabled) const { Q_UNUSED(bIsDisabled); Q_ASSERT(false); }		// Call on either CSearchPhraseEdit or CParsedPhrase
 
+	virtual PHRASE_CONSTRAINED_TO_ENUM contraint() const { return CParsedPhrase::constraint(); }
+	virtual void setConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint) override;
+
 	virtual void setFromPhraseEntry(const CPhraseEntry &aPhraseEntry, bool bFindWords) override;
 
 	void processPendingUpdateCompleter();
@@ -106,7 +112,8 @@ public slots:
 private slots:
 	void insertCompletion(const QString &completion);
 	void insertCompletion(const QModelIndex &index);
-	void insertCommonPhraseCompletion(const QString &completion);
+	void insertCommonPhraseCompletion(const QModelIndex &index);
+	void insertCommonPhraseCompletion(const CPhraseEntry &aPhraseEntry);
 	void en_dropCommonPhrasesClicked();
 	void en_changedSearchPhraseCompleterFilterMode(SEARCH_COMPLETION_FILTER_MODE_ENUM nMode);
 	void delayed_UpdatedCompleter();
@@ -118,6 +125,7 @@ signals:
 	void changeCaseSensitive(bool bCaseSensitive);
 	void changeAccentSensitive(bool bAccentSensitive);
 	void changeExclude(bool bExclude);
+	void changeConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint);
 	void activatedPhraseEditor(const CPhraseLineEdit *pEditor);
 
 	// Pass-through:
@@ -201,6 +209,8 @@ protected slots:
 	void en_CaseSensitiveChanged(bool bCaseSensitive);
 	void en_AccentSensitiveChanged(bool bAccentSensitive);
 	void en_ExcludeChanged(bool bExclude);
+	void en_ConstraintChanged(PHRASE_CONSTRAINED_TO_ENUM nConstraint);
+	void en_ConstraintComboChanged(int nIndex);
 	void en_phraseAdd();
 	void en_phraseDel();
 	void en_phraseClear();
