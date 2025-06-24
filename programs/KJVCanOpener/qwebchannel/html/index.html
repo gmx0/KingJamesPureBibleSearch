@@ -482,17 +482,22 @@
 				tdClose.append('<button value="Close" class="searchPhraseClose" id="searchPhrase_' + nSearchPhraseNextID + '_Close" onclick="javascript:searchPhraseClose(\'searchPhrase_' + nSearchPhraseNextID + '\');"><img height="100%" style="border: none; margin: 0; padding: 0;" src="Close.png" /></button>');
 				phraseTable.append('<tr></tr>');
 				var trOpts = phraseTable.find("tr").first().next().next().next();
-				trOpts.append('<td colspan="4"></td>');
-				var tdOpts = trOpts.find("td").first();
+				trOpts.append('<td colspan="4"><table class="searchPhraseOpts"><tr></tr><tr></tr></table></td>');
+				var trCheckboxOpts = trOpts.find("tr").first();
 				if (($(window).width() < 512) || ($(window).height() < 512)) {
-					tdOpts.append('<div class="checkboxitem"><input type="checkbox" class="searchPhraseOpts" name="CaseSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive">Case</label></div>');
-					tdOpts.append('<div class="checkboxitem"><input type="checkbox" class="searchPhraseOpts" name="AccentSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive">Accent</label></div>');
+					trCheckboxOpts.append('<td class="searchPhraseOpts"><input type="checkbox" class="checkboxitem" name="CaseSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive">Case</label></td>');
+					trCheckboxOpts.append('<td class="searchPhraseOpts"><input type="checkbox" class="checkboxitem" name="AccentSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive">Accent</label></td>');
 				} else {
-					tdOpts.append('<div class="checkboxitem"><input type="checkbox" class="searchPhraseOpts" name="CaseSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive">Case Sensitive</label></div>');
-					tdOpts.append('<div class="checkboxitem"><input type="checkbox" class="searchPhraseOpts" name="AccentSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive">Accent/Ligature Sensitive</label></div>');
+					trCheckboxOpts.append('<td class="searchPhraseOpts"><input type="checkbox" class="checkboxitem" name="CaseSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_CaseSensitive">Case Sensitive</label></td>');
+					trCheckboxOpts.append('<td class="searchPhraseOpts"><input type="checkbox" class="checkboxitem" name="AccentSensitive" id="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_AccentSensitive">Accent/Ligature Sensitive</label></td>');
 				}
-				tdOpts.append('<div class="checkboxitem"><input type="checkbox" class="searchPhraseOpts" name="Exclude" id="searchPhrase_' + nSearchPhraseNextID + '_Exclude" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_Exclude">Exclude</label></div>');
-				tdOpts.append('<div class="checkboxitem"><input type="checkbox" class="searchPhraseOpts" name="Disable" id="searchPhrase_' + nSearchPhraseNextID + '_Disable" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_Disable">Disable</label></div>');
+				trCheckboxOpts.append('<td class="searchPhraseOpts"><input type="checkbox" class="checkboxitem" name="Exclude" id="searchPhrase_' + nSearchPhraseNextID + '_Exclude" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_Exclude">Exclude</label></td>');
+				trCheckboxOpts.append('<td class="searchPhraseOpts"><input type="checkbox" class="checkboxitem" name="Disable" id="searchPhrase_' + nSearchPhraseNextID + '_Disable" onclick="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');" /><label for="searchPhrase_' + nSearchPhraseNextID + '_Disable">Disable</label></td>');
+				var trConstraint = trOpts.find("tr").first().next();
+				trConstraint.append('<td colspan="4"></td>');
+				var tdConstrainTo = trConstraint.find("td").first();
+				tdConstrainTo.append('<label for="searchPhrase_' + nSearchPhraseNextID + '_ConstrainTo">Constrain To:</label>');
+				tdConstrainTo.append('<select class="constrainTo" name="ConstrainTo" id="searchPhrase_' + nSearchPhraseNextID + '_ConstrainTo" onchange="javascript:searchPhraseOptsChanged(\'searchPhrase_' + nSearchPhraseNextID + '\');"><option value="0">Unconstrained</option><option value="3">Book</option><option value="2">Chapter</option><option value="1">Verse</option></select>');
 				phraseTable.append('<tr></tr>');
 				var trBreak = phraseTable.find("tr").first().next().next().next().next();
 				trBreak.append('<td colspan="4"></td>');
@@ -602,6 +607,14 @@
 							phrases = phrases + ";"
 						}
 						// order matters, see CPhraseEntry!
+						var nConstrainTo = document.getElementById($(this).parents(".searchPhrase").attr("id")+"_ConstrainTo").value;
+						if (nConstrainTo == 1) {
+							phrases = phrases + '\u2460';
+						} else if (nConstrainTo == 2) {
+							phrases = phrases + '\u2461';
+						} else if (nConstrainTo == 3) {
+							phrases = phrases + '\u2462';
+						}
 						if (document.getElementById($(this).parents(".searchPhrase").attr("id")+"_Disable").checked) {
 							phrases = phrases + '\u00AC';
 							document.getElementById($(this).parents(".searchPhrase").attr("id")+"_Occurrences").innerHTML = "N/A";
@@ -625,6 +638,7 @@
 					document.getElementById(aSearchPhrase + "_AccentSensitive").disabled = bDisable;
 					document.getElementById(aSearchPhrase + "_Exclude").disabled = bDisable;
 					document.getElementById(aSearchPhrase + "_Besome").disabled = bDisable;
+					document.getElementById(aSearchPhrase + "_ConstrainTo").disabled = bDisable;
 				}
 				if (!phrases) {
 					document.getElementById("moreSearchResults").style.display = 'none';
@@ -1147,21 +1161,20 @@
 				overflow: auto;
 			}
 
-			.checkboxitem {
+			table.searchPhraseOpts {
 				white-space: nowrap;
-				display:inline
+				width: 100%;
+				text-align: left;
 			}
 
-			table.searchPhraseTable
-			{
+			table.searchPhraseTable {
 				margin-left: auto;
 				margin-right: auto;
 				border-collapse: collapse;
 				border-spacing: 0;
 			}
 
-			table.searchSpec
-			{
+			table.searchSpec {
 				margin-left: auto;
 				margin-right: auto;
 				border-collapse: collapse;
@@ -1315,6 +1328,16 @@
 			#searchScope {
 				width: 100%;
 				max-width: 100%;
+				padding: 0;
+				margin: 0 auto;
+			}
+			#checkboxitem {
+				width: 100%;
+				max-width: 100%;
+				padding: 0;
+				margin: 0 auto;
+			}
+			#constrainTo {
 				padding: 0;
 				margin: 0 auto;
 			}
