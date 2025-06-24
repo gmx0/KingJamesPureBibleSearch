@@ -24,6 +24,8 @@
 #ifndef BIBLE_LAYOUT_H
 #define BIBLE_LAYOUT_H
 
+#include <stdint.h>
+
 #include <QObject>
 #include <QList>
 #include <QString>
