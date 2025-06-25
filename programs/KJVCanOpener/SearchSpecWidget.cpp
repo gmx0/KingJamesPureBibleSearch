@@ -325,7 +325,6 @@ CSearchPhraseEdit *CSearchSpecWidget::addSearchPhrase()
 	connect(pPhraseWidget, SIGNAL(activatedPhraseEditor(const CPhraseLineEdit*)), this, SLOT(en_activatedPhraseEditor(const CPhraseLineEdit*)));
 
 	connect(pPhraseWidget, SIGNAL(phraseChanged(CSearchPhraseEdit*)), &m_dlySearchResultsUpdate, SLOT(trigger()));
-	connect(pPhraseWidget, SIGNAL(enterTriggered()), this, SLOT(en_phraseChanged()), Qt::QueuedConnection);
 
 	// Set pass-throughs:
 	connect(pPhraseWidget, SIGNAL(closingSearchPhrase(CSearchPhraseEdit*)), this, SIGNAL(closingSearchPhrase(CSearchPhraseEdit*)));

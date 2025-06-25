@@ -640,6 +640,7 @@ CSearchPhraseEdit::CSearchPhraseEdit(CBibleDatabasePtr pBibleDatabase, bool bHav
 	connect(ui.editPhrase, SIGNAL(activatedPhraseEditor(const CPhraseLineEdit*)), this, SIGNAL(activatedPhraseEditor(const CPhraseLineEdit*)));
 	connect(ui.buttonRemove, SIGNAL(clicked()), this, SLOT(closeSearchPhrase()));
 	connect(ui.editPhrase, SIGNAL(enterTriggered()), this, SIGNAL(enterTriggered()));
+	connect(ui.editPhrase, SIGNAL(enterTriggered()), &m_dlyTextChanged, SLOT(trigger()));		// Send 'enter' through the m_dlyTextChanged compressor
 }
 
 CSearchPhraseEdit::~CSearchPhraseEdit()
