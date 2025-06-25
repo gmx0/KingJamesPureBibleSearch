@@ -92,7 +92,6 @@ private slots:
 	void insertCompletion(const QString &completion);
 	void insertCompletion(const QModelIndex &index);
 	void insertCommonPhraseCompletion(const QModelIndex &index);
-	void insertCommonPhraseCompletion(const CPhraseEntry &aPhraseEntry);
 	void en_dropCommonPhrasesClicked();
 	void en_changedSearchPhraseCompleterFilterMode(SEARCH_COMPLETION_FILTER_MODE_ENUM nMode);
 	void delayed_UpdatedCompleter();

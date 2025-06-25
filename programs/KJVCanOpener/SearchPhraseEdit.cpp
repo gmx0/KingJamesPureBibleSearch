@@ -253,12 +253,6 @@ void CPhraseLineEdit::setConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint)
 	}
 }
 
-void CPhraseLineEdit::setFromPhraseEntry(const CPhraseEntry &aPhraseEntry, bool bFindWords)
-{
-	insertCommonPhraseCompletion(aPhraseEntry);
-	Q_UNUSED(bFindWords);						// PhraseLineEdit will always find words on insertion
-}
-
 void CPhraseLineEdit::insertCompletion(const QString& completion)
 {
 	CParsedPhrase::insertCompletion(textCursor(), completion);
@@ -272,12 +266,14 @@ void CPhraseLineEdit::insertCompletion(const QModelIndex &index)
 void CPhraseLineEdit::insertCommonPhraseCompletion(const QModelIndex &index)
 {
 	if (index.isValid()) {
-		insertCommonPhraseCompletion(m_pCommonPhrasesCompleter->model()->data(index, CPhraseListModel::PHRASE_ENTRY_ROLE).value<CPhraseEntry>());
+		setFromPhraseEntry(m_pCommonPhrasesCompleter->model()->data(index, CPhraseListModel::PHRASE_ENTRY_ROLE).value<CPhraseEntry>(), true);
 	}
 }
 
-void CPhraseLineEdit::insertCommonPhraseCompletion(const CPhraseEntry &aPhraseEntry)
+void CPhraseLineEdit::setFromPhraseEntry(const CPhraseEntry &aPhraseEntry, bool bFindWords)
 {
+	Q_UNUSED(bFindWords);						// PhraseLineEdit will always find words on insertion
+
 	bool bOldCaseSensitive = isCaseSensitive();
 	bool bOldAccentSensitive = isAccentSensitive();
 	bool bOldExclude = isExcluded();
@@ -742,7 +738,7 @@ CPhraseLineEdit *CSearchPhraseEdit::phraseEditor() const
 
 void CSearchPhraseEdit::setPhraseEntry(const CPhraseEntry &aPhraseEntry)
 {
-	phraseEditor()->setFromPhraseEntry(aPhraseEntry, false);
+	phraseEditor()->setFromPhraseEntry(aPhraseEntry, true);
 	setDisabled(aPhraseEntry.isDisabled());	// Set this one on us directly to update things (as the parsed phrase doesn't signal)
 }
 
