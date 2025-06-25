@@ -56,8 +56,7 @@ CSearchSpecWidget::CSearchSpecWidget(CBibleDatabasePtr pBibleDatabase, bool bHav
 		m_bDoingResizing(false),
 		m_pLastEditorActive(nullptr),
 		m_bDoneActivation(false),
-		m_bCloseAllSearchPhrasesInProgress(false),
-		m_bReadingSearchFile(false)
+		m_bCloseAllSearchPhrasesInProgress(false)
 {
 	ui.setupUi(this);
 
@@ -198,8 +197,6 @@ void CSearchSpecWidget::readKJVSearchFile(QSettings &kjsFile, const QString &str
 	CSearchCriteria::SEARCH_SCOPE_MODE_ENUM nSearchScope = CSearchCriteria::SSME_UNSCOPED;
 	QString strSearchWithin;
 
-	m_bReadingSearchFile = true;
-
 	closeAllSearchPhrases();
 
 	kjsFile.beginGroup(groupCombine(strSubgroup, "SearchCriteria"));
@@ -226,14 +223,14 @@ void CSearchSpecWidget::readKJVSearchFile(QSettings &kjsFile, const QString &str
 		Q_ASSERT(pPhraseEditor != nullptr);
 		if (ndx == 0) pFirstSearchPhraseEditor = pPhraseEditor;
 		kjsFile.setArrayIndex(ndx);
-		TPhraseSettings aPhrase;
-		aPhrase.m_strPhrase = kjsFile.value("Phrase").toString();
-		aPhrase.m_bCaseSensitive = kjsFile.value("CaseSensitive", false).toBool();
-		aPhrase.m_bAccentSensitive = kjsFile.value("AccentSensitive", false).toBool();
-		aPhrase.m_bExclude = kjsFile.value("Exclude", false).toBool();
-		aPhrase.m_bDisabled = kjsFile.value("Disabled", false).toBool();
-		aPhrase.m_nConstraint = static_cast<PHRASE_CONSTRAINED_TO_ENUM>(kjsFile.value("Constraint", PCTE_UNCONSTRAINED).toInt());
-		pPhraseEditor->setupPhrase(aPhrase);
+		CPhraseEntry aPhrase;
+		aPhrase.setText(kjsFile.value("Phrase").toString());
+		aPhrase.setCaseSensitive(kjsFile.value("CaseSensitive", false).toBool());
+		aPhrase.setAccentSensitive(kjsFile.value("AccentSensitive", false).toBool());
+		aPhrase.setExclude(kjsFile.value("Exclude", false).toBool());
+		aPhrase.setDisabled(kjsFile.value("Disabled", false).toBool());
+		aPhrase.setConstraint(static_cast<PHRASE_CONSTRAINED_TO_ENUM>(kjsFile.value("Constraint", PCTE_UNCONSTRAINED).toInt()));
+		pPhraseEditor->setPhraseEntry(aPhrase);
 	}
 	// But, always open at least the minimum number of empty search phrases specified:
 	for (int ndx = nPhrases; ndx < CPersistentSettings::instance()->initialNumberOfSearchPhrases(); ++ndx) {
@@ -242,9 +239,6 @@ void CSearchSpecWidget::readKJVSearchFile(QSettings &kjsFile, const QString &str
 		if (ndx == 0) pFirstSearchPhraseEditor = pPhraseEditor;
 	}
 	kjsFile.endArray();
-
-	m_bReadingSearchFile = false;
-	en_phraseChanged(nullptr);			// Update all results at once
 
 	// Set focus to our first editor.  Note that calling of focusEditor
 	//	doesn't work when running from the constructor during a restore
@@ -328,7 +322,6 @@ CSearchPhraseEdit *CSearchSpecWidget::addSearchPhrase()
 	connect(pPhraseWidget, SIGNAL(resizing(CSearchPhraseEdit*)), this, SLOT(en_phraseResizing(CSearchPhraseEdit*)));
 	connect(pPhraseWidget, SIGNAL(closingSearchPhrase(CSearchPhraseEdit*)), this, SLOT(en_closingSearchPhrase(CSearchPhraseEdit*)));
 	connect(pPhraseWidget, SIGNAL(changingShowMatchingPhrases(CSearchPhraseEdit*)), this, SLOT(en_changingShowMatchingPhrases(CSearchPhraseEdit*)));
-//	connect(pPhraseWidget, SIGNAL(phraseChanged(CSearchPhraseEdit*)), this, SLOT(en_phraseChanged(CSearchPhraseEdit*)));
 	connect(pPhraseWidget, SIGNAL(activatedPhraseEditor(const CPhraseLineEdit*)), this, SLOT(en_activatedPhraseEditor(const CPhraseLineEdit*)));
 
 	connect(pPhraseWidget, SIGNAL(phraseChanged(CSearchPhraseEdit*)), &m_dlySearchResultsUpdate, SLOT(trigger()));
@@ -573,8 +566,6 @@ void CSearchSpecWidget::en_phraseChanged(CSearchPhraseEdit *pSearchPhrase)
 	m_dlySearchResultsUpdate.untrigger();
 
 	Q_UNUSED(pSearchPhrase);
-
-	if (m_bReadingSearchFile) return;
 
 	CBusyCursor iAmBusy(nullptr);
 

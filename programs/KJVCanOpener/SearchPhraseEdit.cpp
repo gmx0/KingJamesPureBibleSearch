@@ -203,76 +203,58 @@ void CPhraseLineEdit::en_phraseChanged()
 	setHasChanged(true);
 }
 
-void CPhraseLineEdit::setupPhrase(const TPhraseSettings &aPhrase)
-{
-	{
-		// Keep doUpdate in separate namespace and release it before we call overall UpdateCompleter() and phraseChanged()
-		CDoUpdate doUpdate(this);		// Save up changes until the end
-		// These will emit a signal that will update the outer CSearchPhraseEdit, which will
-		//		turn around and call us to set it, but will keep us from calling UpdateCompleter()
-		//		and phraseChanged() on each item:
-		emit changeCaseSensitive(aPhrase.m_bCaseSensitive);
-		emit changeAccentSensitive(aPhrase.m_bAccentSensitive);
-		emit changeExclude(aPhrase.m_bExclude);
-		emit changeConstraint(aPhrase.m_nConstraint);
-		setPlainText(aPhrase.m_strPhrase);
-	}
-	UpdateCompleter();
-	emit phraseChanged();
-}
-
 void CPhraseLineEdit::setCaseSensitive(bool bCaseSensitive)
 {
+	bool bOldCaseSensitive = isCaseSensitive();
 	CParsedPhrase::setCaseSensitive(bCaseSensitive);
 //	m_pCompleter->setCaseSensitivity(isCaseSensitive() ? Qt::CaseSensitive : Qt::CaseInsensitive);
 
 	if (!updateInProgress()) {
+		if (bOldCaseSensitive != bCaseSensitive) emit changeCaseSensitive(bCaseSensitive);
 		UpdateCompleter();
 		emit phraseChanged();
-		emit changeCaseSensitive(bCaseSensitive);
 	}
 }
 
 void CPhraseLineEdit::setAccentSensitive(bool bAccentSensitive)
 {
+	bool bOldAccentSensitive = isAccentSensitive();
 	CParsedPhrase::setAccentSensitive(bAccentSensitive);
 	// TODO : ??? Add AccentSensitivity to completer ???
 
 	if (!updateInProgress()) {
+		if (bOldAccentSensitive != bAccentSensitive) emit changeAccentSensitive(bAccentSensitive);
 		UpdateCompleter();
 		emit phraseChanged();
-		emit changeAccentSensitive(bAccentSensitive);
 	}
 }
 
 void CPhraseLineEdit::setExclude(bool bExclude)
 {
+	bool bOldExclude = isExcluded();
 	CParsedPhrase::setExclude(bExclude);
 
 	if (!updateInProgress()) {
+		if (bOldExclude != bExclude) emit changeExclude(bExclude);
 		// No need to trigger UpdateCompleter() here as exclude has no bearing on completion
 		emit phraseChanged();				// But, we need to recalculate our search results
-		emit changeExclude(bExclude);
 	}
 }
 
 void CPhraseLineEdit::setConstraint(PHRASE_CONSTRAINED_TO_ENUM nConstraint)
 {
+	PHRASE_CONSTRAINED_TO_ENUM nOldConstraint = constraint();
 	CParsedPhrase::setConstraint(nConstraint);
 
 	if (!updateInProgress()) {
+		if (nOldConstraint != nConstraint) emit changeConstraint(nConstraint);
 		// No need to trigger UpdateCompleter() here as constraint has no bearing on completion
 		emit phraseChanged();				// But, we need to recalculate our search results
-		emit changeConstraint(nConstraint);
 	}
 }
 
 void CPhraseLineEdit::setFromPhraseEntry(const CPhraseEntry &aPhraseEntry, bool bFindWords)
 {
-	{
-		CDoUpdate doUpdate(this);				// Don't send update for the text clear, we'll send it later after we set it
-		clear();
-	}
 	insertCommonPhraseCompletion(aPhraseEntry);
 	Q_UNUSED(bFindWords);						// PhraseLineEdit will always find words on insertion
 }
@@ -296,29 +278,26 @@ void CPhraseLineEdit::insertCommonPhraseCompletion(const QModelIndex &index)
 
 void CPhraseLineEdit::insertCommonPhraseCompletion(const CPhraseEntry &aPhraseEntry)
 {
-	CPhraseCursor cursor(textCursor(), m_pBibleDatabase.data(), false);		// Hyphens aren't considered as word separators for phrases
-	cursor.clearSelection();
-	cursor.select(QTextCursor::LineUnderCursor);
 	bool bOldCaseSensitive = isCaseSensitive();
 	bool bOldAccentSensitive = isAccentSensitive();
 	bool bOldExclude = isExcluded();
-	PHRASE_CONSTRAINED_TO_ENUM nConstraint = constraint();
+	PHRASE_CONSTRAINED_TO_ENUM nOldConstraint = constraint();
 	{
 		CDoUpdate doUpdate(this);				// Hold-over to update everything at once
-		cursor.insertText(aPhraseEntry.text());
 		setCaseSensitive(aPhraseEntry.caseSensitive());
 		setAccentSensitive(aPhraseEntry.accentSensitive());
 		setExclude(aPhraseEntry.isExcluded());
 		setConstraint(aPhraseEntry.constraint());
+		setPlainText(aPhraseEntry.text());
 		// Release update here
 	}
 	if (!updateInProgress()) {
-		UpdateCompleter();
-		emit phraseChanged();
 		if (bOldCaseSensitive != isCaseSensitive()) emit changeCaseSensitive(isCaseSensitive());
 		if (bOldAccentSensitive != isAccentSensitive()) emit changeAccentSensitive(isAccentSensitive());
 		if (bOldExclude != isExcluded()) emit changeExclude(isExcluded());
-		if (nConstraint != constraint()) emit changeConstraint(constraint());
+		if (nOldConstraint != constraint()) emit changeConstraint(constraint());
+		UpdateCompleter();
+		emit phraseChanged();
 	}
 }
 
@@ -723,12 +702,6 @@ void CSearchPhraseEdit::en_matchingPhraseActivated(const QModelIndex &index)
 	}
 }
 
-void CSearchPhraseEdit::setupPhrase(const TPhraseSettings &aPhrase)
-{
-	phraseEditor()->setupPhrase(aPhrase);
-	setDisabled(aPhrase.m_bDisabled);			// Set this one on us directly to update things (as the parsed phrase doesn't signal)
-}
-
 void CSearchPhraseEdit::closeSearchPhrase()
 {
 	emit closingSearchPhrase(this);
@@ -765,6 +738,12 @@ const CParsedPhrase *CSearchPhraseEdit::parsedPhrase() const
 CPhraseLineEdit *CSearchPhraseEdit::phraseEditor() const
 {
 	return ui.editPhrase;
+}
+
+void CSearchPhraseEdit::setPhraseEntry(const CPhraseEntry &aPhraseEntry)
+{
+	phraseEditor()->setFromPhraseEntry(aPhraseEntry, false);
+	setDisabled(aPhraseEntry.isDisabled());	// Set this one on us directly to update things (as the parsed phrase doesn't signal)
 }
 
 void CSearchPhraseEdit::en_phraseChanged()
@@ -900,8 +879,8 @@ void CSearchPhraseEdit::en_phraseDel()
 
 void CSearchPhraseEdit::en_phraseClear()
 {
-	ui.editPhrase->clear();
 	m_phraseEntry.clear();
+	ui.editPhrase->clear();
 	// No need to call setPhraseButtonEnables because the textChanged event caused by the call above will do it for us
 	en_CaseSensitiveChanged(false);
 	en_AccentSensitiveChanged(false);

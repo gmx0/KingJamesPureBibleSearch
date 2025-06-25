@@ -51,25 +51,6 @@ class CMatchingPhrasesListModel;
 
 // ============================================================================
 
-// TODO : Smash into CPhraseEntry and get rid of this struct:
-struct TPhraseSettings {
-	TPhraseSettings()
-		:	m_bCaseSensitive(false),
-			m_bAccentSensitive(false),
-			m_bExclude(false),
-			m_bDisabled(false),
-			m_nConstraint(PCTE_UNCONSTRAINED)
-	{
-	}
-
-	QString m_strPhrase;
-	bool m_bCaseSensitive;
-	bool m_bAccentSensitive;
-	bool m_bExclude;
-	bool m_bDisabled;
-	PHRASE_CONSTRAINED_TO_ENUM m_nConstraint;
-};
-
 class CPhraseLineEdit : public CSingleLineTextEdit, public CParsedPhrase
 {
 	Q_OBJECT
@@ -78,8 +59,6 @@ public:
 	explicit CPhraseLineEdit(QWidget *pParent = nullptr);
 	CPhraseLineEdit(CBibleDatabasePtr pBibleDatabase, QWidget *pParent = nullptr);
 	virtual ~CPhraseLineEdit();
-
-	void setupPhrase(const TPhraseSettings &aPhrase);
 
 	QMenu *getEditMenu() const { return m_pEditMenu; }
 	QWidget *getDropListButton() const { return m_pButtonDroplist; }
@@ -175,11 +154,10 @@ public:
 
 	virtual bool eventFilter(QObject *pObject, QEvent *pEvent) override;
 
-	void setupPhrase(const TPhraseSettings &aPhrase);
-
 	const CParsedPhrase *parsedPhrase() const;
 	CPhraseLineEdit *phraseEditor() const;
-	const CPhraseEntry &phraseEntry() const {return m_phraseEntry; }
+	const CPhraseEntry &phraseEntry() const { return m_phraseEntry; }
+	void setPhraseEntry(const CPhraseEntry &aPhraseEntry);
 
 	int searchActivationDelay() const { return m_dlyTextChanged.minimumDelay(); }
 
