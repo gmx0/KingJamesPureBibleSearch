@@ -77,10 +77,10 @@ extern QString elsresultSortOrderToLetters(ELSRESULT_SORT_ORDER_ENUM nSortOrder)
 enum ELS_SEARCH_TYPE_ENUM {
 	ESTE_ELS = 0,				// Normal ELS Search
 	ESTE_FLS = 1,				// Fibonacci FLS Search
-	ESTE_FLS_C9_ALL = 2,		// FLS Search with Casting out 9's, ALL
+	ESTE_FLS_C9_ALL = 2,			// FLS Search with Casting out 9's, ALL
 	ESTE_FLS_C9_124875 = 3,		// FLS Search with Casting out 9's, 1-2-4-8-7-5
-	ESTE_FLS_C9_147 = 4,		// FLS Search with Casting out 9's, 1-4-7
-	ESTE_FLS_C9_852 = 5,		// FLS Search with Casting out 9's, 8-5-2
+	ESTE_FLS_C9_147 = 4,			// FLS Search with Casting out 9's, 1-4-7
+	ESTE_FLS_C9_852 = 5,			// FLS Search with Casting out 9's, 8-5-2
 	ESTE_FLS_C9_18 = 6,			// FLS Search with Casting out 9's, 1-8
 	ESTE_FLS_C9_45 = 7,			// FLS Search with Casting out 9's, 4-5
 	ESTE_FLS_C9_72 = 8,			// FLS Search with Casting out 9's, 7-2
@@ -105,6 +105,22 @@ extern QString elsSearchTypeToID(ELS_SEARCH_TYPE_ENUM nSearchType);
 
 // ============================================================================
 
+// ELS Result Reference Types:
+enum ELS_RESULT_REF_TYPE_ENUM {
+	ERRTE_NOMINAL = 0,			// Nominal (center) reference
+	ERRTE_START = 1,				// Start Index in matrix reference
+	ERRTE_END = 2,				// End Index in matrix reference
+	ERRTE_FIRST = 3,				// First Letter of Word reference
+	ERRTE_LAST = 4,				// Last Letter of Word reference
+};
+Q_DECLARE_METATYPE(ELS_RESULT_REF_TYPE_ENUM)
+
+extern QString elsResultRefTypeDescription(ELS_RESULT_REF_TYPE_ENUM nRefType);
+extern ELS_RESULT_REF_TYPE_ENUM elsResultRefTypeFromID(const QString &strID);	// Return ERRTE_NOMINAL if invalid
+extern QString elsResultRefTypeToID(ELS_RESULT_REF_TYPE_ENUM nRefType);
+
+// ============================================================================
+
 class CELSResult
 {
 public:
@@ -118,6 +134,24 @@ public:
 	// Computable data:
 	CRelIndexEx m_ndxEnd;									// Index of last letter (in matrix order, i.e. will be last letter if found in LeftToRight direction)
 	CRelIndexEx m_ndxNominal;								// Nominal index of word -- dependent on search type weighting
+
+	CRelIndexEx selectedReference(ELS_RESULT_REF_TYPE_ENUM nRefType) const		// Returns corresponding reference for selected type
+	{
+		switch (nRefType) {
+			case ERRTE_NOMINAL:
+				return m_ndxNominal;
+			case ERRTE_START:
+				return m_ndxStart;
+			case ERRTE_END:
+				return m_ndxEnd;
+			case ERRTE_FIRST:
+				return (m_nDirection == Qt::LeftToRight) ? m_ndxStart : m_ndxEnd;
+			case ERRTE_LAST:
+				return (m_nDirection == Qt::LeftToRight) ? m_ndxEnd : m_ndxStart;
+		}
+		Q_ASSERT(false);
+		return CRelIndexEx();
+	}
 
 	// operator<() needed for QMap:
 	inline bool operator<(const CELSResult &result) const	// This '<' operator is for QMap containing functionality only, and not for actually sorting CELSResult values!
@@ -165,7 +199,7 @@ typedef QMap<CELSResult, bool> CELSResultSet;		// "Set" implemented as a QMap --
 Q_DECLARE_METATYPE(CELSResultList)
 Q_DECLARE_METATYPE(CELSResultSet)
 
-extern void sortELSResultList(ELSRESULT_SORT_ORDER_ENUM nSortOrder, CELSResultList &lstResults);
+extern void sortELSResultList(ELSRESULT_SORT_ORDER_ENUM nSortOrder, CELSResultList &lstResults, ELS_RESULT_REF_TYPE_ENUM nRefType);
 
 // ============================================================================
 
@@ -174,7 +208,7 @@ class CELSResultListModel : public QAbstractListModel
 	Q_OBJECT
 
 public:
-	explicit CELSResultListModel(const CLetterMatrix &letterMatrix, LETTER_CASE_ENUM nLetterCase, QObject *parent = nullptr);
+	explicit CELSResultListModel(const CLetterMatrix &letterMatrix, ELS_RESULT_REF_TYPE_ENUM nRefType, LETTER_CASE_ENUM nLetterCase, QObject *parent = nullptr);
 	virtual ~CELSResultListModel();
 
 	// Header:
@@ -206,6 +240,7 @@ public:
 
 	ELSRESULT_SORT_ORDER_ENUM sortOrder() const { return m_nSortOrder; }
 
+	ELS_RESULT_REF_TYPE_ENUM refType() const { return m_nRefType; }
 	LETTER_CASE_ENUM letterCase() const { return m_nLetterCase; }
 
 	QModelIndexList getResultIndexes(const CELSResultSet &setResults);
@@ -219,6 +254,7 @@ public slots:
 	void deleteSearchResults(const CELSResultList &lstResults);
 	void clearSearchResults();
 
+	void setRefType(ELS_RESULT_REF_TYPE_ENUM nRefType);
 	void setLetterCase(LETTER_CASE_ENUM nLetterCase);
 
 protected:
@@ -226,6 +262,7 @@ protected:
 
 private:
 	const CLetterMatrix &m_letterMatrix;
+	ELS_RESULT_REF_TYPE_ENUM m_nRefType;
 	LETTER_CASE_ENUM m_nLetterCase;
 	// ----
 	CELSResultList m_lstResults;

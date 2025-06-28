@@ -120,6 +120,7 @@ protected slots:
 	// ----
 	void en_changedSearchType(int nIndex);
 	// ----
+	void en_changedRefType(int nIndex);
 	void en_changedLetterCase(int nIndex);
 	// ----
 	void en_letterMatrixModelAboutToBeReset();

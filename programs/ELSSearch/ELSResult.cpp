@@ -38,9 +38,10 @@
 
 // ============================================================================
 
-CELSResultListModel::CELSResultListModel(const CLetterMatrix &letterMatrix, LETTER_CASE_ENUM nLetterCase, QObject *parent)
+CELSResultListModel::CELSResultListModel(const CLetterMatrix &letterMatrix, ELS_RESULT_REF_TYPE_ENUM nRefType, LETTER_CASE_ENUM nLetterCase, QObject *parent)
 	:	QAbstractListModel(parent),
 		m_letterMatrix(letterMatrix),
+		m_nRefType(nRefType),
 		m_nLetterCase(nLetterCase)
 {
 }
@@ -60,7 +61,20 @@ QVariant CELSResultListModel::headerData(int section, Qt::Orientation orientatio
 			case 2:
 				return tr("Dir", "CELSResult");
 			case 3:
-				return tr("Nom. Reference", "CELSResult");
+				switch (m_nRefType) {
+					case ERRTE_NOMINAL:
+						return tr("Reference Nom.", "CELSResult");
+					case ERRTE_START:
+						return tr("Reference Start", "CELSResult");
+					case ERRTE_END:
+						return tr("Reference End", "CELSResult");
+					case ERRTE_FIRST:
+						return tr("Reference First", "CELSResult");
+					case ERRTE_LAST:
+						return tr("Reference Last", "CELSResult");
+				}
+				Q_ASSERT(false);
+				return QString();
 		}
 	}
 
@@ -106,17 +120,18 @@ QVariant CELSResultListModel::data(const QModelIndex &index, int role) const
 					case LCE_ORIGINAL:
 						return result.m_strWord;
 				}
+				Q_ASSERT(false);
 				return QString();
 			case 1:
 				return result.m_nSkip;
 			case 2:
 				return QString(result.m_nDirection == Qt::LeftToRight ? tr("Fwd", "CELSResult") : tr("Rev", "CELSResult"));
 			case 3:
-				return m_letterMatrix.bibleDatabase()->PassageReferenceText(result.m_ndxNominal, false);
+				return m_letterMatrix.bibleDatabase()->PassageReferenceText(result.selectedReference(m_nRefType), false);
 		}
 	} else if (role == UserRole_Reference) {		// Returns the reference
 		const CELSResult & result = m_lstResults.at(index.row());
-		return QVariant::fromValue(result.m_ndxNominal);
+		return QVariant::fromValue(result.selectedReference(m_nRefType));
 	} else if (role == UserRole_MIMEData) {			// Mime Data for Drag
 		const CELSResult & result = m_lstResults.at(index.row());
 		QString strMimeData;
@@ -202,6 +217,58 @@ Qt::ItemFlags CELSResultListModel::flags(const QModelIndex &index) const
 		return Qt::NoItemFlags;
 
 	return QAbstractItemModel::flags(index) | Qt::ItemIsDragEnabled;
+}
+
+// ----------------------------------------------------------------------------
+
+QString elsResultRefTypeDescription(ELS_RESULT_REF_TYPE_ENUM nRefType)
+{
+	switch (nRefType) {
+		case ERRTE_NOMINAL:
+			return QObject::tr("Nominal", "CELSResult");
+		case ERRTE_START:
+			return QObject::tr("Start Cell", "CELSResult");
+		case ERRTE_END:
+			return QObject::tr("End Cell", "CELSResult");
+		case ERRTE_FIRST:
+			return QObject::tr("First Letter", "CELSResult");
+		case ERRTE_LAST:
+			return QObject::tr("Last Letter", "CELSResult");
+	}
+	return QString();
+}
+
+ELS_RESULT_REF_TYPE_ENUM elsResultRefTypeFromID(const QString &strID)
+{
+	if (strID.compare("nominal", Qt::CaseInsensitive) == 0) {
+		return ERRTE_NOMINAL;
+	} else if (strID.compare("start", Qt::CaseInsensitive) == 0) {
+		return ERRTE_START;
+	} else if (strID.compare("end", Qt::CaseInsensitive) == 0) {
+		return ERRTE_END;
+	} else if (strID.compare("first", Qt::CaseInsensitive) == 0) {
+		return ERRTE_FIRST;
+	} else if (strID.compare("last", Qt::CaseInsensitive) == 0) {
+		return ERRTE_LAST;
+	}
+	return ERRTE_NOMINAL;
+}
+
+QString elsResultRefTypeToID(ELS_RESULT_REF_TYPE_ENUM nRefType)
+{
+	switch (nRefType) {
+		case ERRTE_NOMINAL:
+			return "nominal";
+		case ERRTE_START:
+			return "start";
+		case ERRTE_END:
+			return "end";
+		case ERRTE_FIRST:
+			return "first";
+		case ERRTE_LAST:
+			return "last";
+	}
+	return QString();
 }
 
 // ----------------------------------------------------------------------------
@@ -536,6 +603,14 @@ void CELSResultListModel::clearSearchResults()
 	endResetModel();
 }
 
+void CELSResultListModel::setRefType(ELS_RESULT_REF_TYPE_ENUM nRefType)
+{
+	if (m_nRefType != nRefType) {
+		m_nRefType = nRefType;
+		emit dataChanged(createIndex(0, 0), createIndex(m_lstResults.size()-1, columnCount()-1), { Qt::DisplayRole });
+	}
+}
+
 void CELSResultListModel::setLetterCase(LETTER_CASE_ENUM nLetterCase)
 {
 	if (m_nLetterCase != nLetterCase) {
@@ -546,28 +621,30 @@ void CELSResultListModel::setLetterCase(LETTER_CASE_ENUM nLetterCase)
 
 void CELSResultListModel::sortResults()
 {
-	sortELSResultList(m_nSortOrder, m_lstResults);
+	sortELSResultList(m_nSortOrder, m_lstResults, m_nRefType);
 }
 
-void sortELSResultList(ELSRESULT_SORT_ORDER_ENUM nSortOrder, CELSResultList &lstResults)
+void sortELSResultList(ELSRESULT_SORT_ORDER_ENUM nSortOrder, CELSResultList &lstResults, ELS_RESULT_REF_TYPE_ENUM nRefType)
 {
 	std::sort(lstResults.begin(), lstResults.end(),
-			  [nSortOrder](const CELSResult &r1, const CELSResult &r2)->bool {
-				  auto fnWord = [](const CELSResult &r1, const CELSResult &r2)->std::pair<bool,bool> {
+			  [nSortOrder, nRefType](const CELSResult &r1, const CELSResult &r2)->bool {
+				  auto fnWord = [](const CELSResult &r1, const CELSResult &r2, ELS_RESULT_REF_TYPE_ENUM nRefType)->std::pair<bool,bool> {
+					  Q_UNUSED(nRefType);
 					  int nComp = r1.m_strWord.compare(r2.m_strWord, Qt::CaseInsensitive);
 					  return std::pair<bool,bool>(nComp < 0, nComp == 0);
 				  };
-				  auto fnSkip = [](const CELSResult &r1, const CELSResult &r2)->std::pair<bool,bool> {
+				  auto fnSkip = [](const CELSResult &r1, const CELSResult &r2, ELS_RESULT_REF_TYPE_ENUM nRefType)->std::pair<bool,bool> {
+					  Q_UNUSED(nRefType);
 					  return std::pair<bool,bool>(r1.m_nSkip < r2.m_nSkip, r1.m_nSkip == r2.m_nSkip);
 				  };
-				  auto fnRef = [](const CELSResult &r1, const CELSResult &r2)->std::pair<bool,bool> {
-					  return std::pair<bool,bool>(r1.m_ndxNominal.indexEx() < r2.m_ndxNominal.indexEx(),
-												   r1.m_ndxNominal.indexEx() == r2.m_ndxNominal.indexEx());
+				  auto fnRef = [](const CELSResult &r1, const CELSResult &r2, ELS_RESULT_REF_TYPE_ENUM nRefType)->std::pair<bool,bool> {
+					  return std::pair<bool,bool>(r1.selectedReference(nRefType).indexEx() < r2.selectedReference(nRefType).indexEx(),
+												   r1.selectedReference(nRefType).indexEx() == r2.selectedReference(nRefType).indexEx());
 				  };
 				  struct TFuncs {
-					  std::pair<bool,bool> (*m_first)(const CELSResult &, const CELSResult &);
-					  std::pair<bool,bool> (*m_second)(const CELSResult &, const CELSResult &);
-					  std::pair<bool,bool> (*m_third)(const CELSResult &, const CELSResult &);
+					  std::pair<bool,bool> (*m_first)(const CELSResult &, const CELSResult &, ELS_RESULT_REF_TYPE_ENUM nRefType);
+					  std::pair<bool,bool> (*m_second)(const CELSResult &, const CELSResult &, ELS_RESULT_REF_TYPE_ENUM nRefType);
+					  std::pair<bool,bool> (*m_third)(const CELSResult &, const CELSResult &, ELS_RESULT_REF_TYPE_ENUM nRefType);
 				  } sortFuncs[] = {			// Order must match ELSRESULT_SORT_ORDER_ENUM
 					  { fnWord, fnSkip, fnRef },	// ESO_WSR
 					  { fnWord, fnRef, fnSkip },	// ESO_WRS
@@ -576,13 +653,13 @@ void sortELSResultList(ELSRESULT_SORT_ORDER_ENUM nSortOrder, CELSResultList &lst
 					  { fnSkip, fnRef, fnWord },	// ESO_SRW
 					  { fnSkip, fnWord, fnRef },	// ESO_SWR
 				  };
-				  std::pair<bool,bool> cmpFirst = sortFuncs[nSortOrder].m_first(r1, r2);
+				  std::pair<bool,bool> cmpFirst = sortFuncs[nSortOrder].m_first(r1, r2, nRefType);
 				  if (cmpFirst.first) return true;
 				  if (cmpFirst.second) {
-					  std::pair<bool,bool> cmpSecond = sortFuncs[nSortOrder].m_second(r1, r2);
+					  std::pair<bool,bool> cmpSecond = sortFuncs[nSortOrder].m_second(r1, r2, nRefType);
 					  if (cmpSecond.first) return true;
 					  if (cmpSecond.second) {
-						  std::pair<bool,bool> cmpThird = sortFuncs[nSortOrder].m_third(r1, r2);
+						  std::pair<bool,bool> cmpThird = sortFuncs[nSortOrder].m_third(r1, r2, nRefType);
 						  if (cmpThird.first) return true;
 					  }
 				  }

@@ -209,6 +209,19 @@
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QLabel" name="lblRefType">
+            <property name="text">
+             <string>Reference:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cmbRefType</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="cmbRefType"/>
+          </item>
          </layout>
         </item>
         <item>
@@ -562,6 +575,7 @@
   <tabstop>spinMaxSkip</tabstop>
   <tabstop>cmbBookStart</tabstop>
   <tabstop>cmbBookEnd</tabstop>
+  <tabstop>cmbRefType</tabstop>
   <tabstop>tvLetterMatrix</tabstop>
   <tabstop>tvELSResults</tabstop>
   <tabstop>cmbSortOrder</tabstop>

@@ -348,6 +348,7 @@ int main(int argc, char *argv[])
 	LMChapterPrologueOptionFlags flagsLMCPO = LMCPO_Default;
 	LMVersePrologueOptionFlags flagsLMVPO = LMVPO_Default;
 	LMFullVerseTextOptionFlags flagsLMFVTO = LMFVTO_Default;
+	ELS_RESULT_REF_TYPE_ENUM nRefType = ERRTE_NOMINAL;
 	LETTER_CASE_ENUM nLetterCase = LCE_LOWER;
 	unsigned int nBookStart = 0;
 	unsigned int nBookEnd = 0;
@@ -416,6 +417,16 @@ int main(int argc, char *argv[])
 			flagsLMFVTO.setFlag(LMFVTO_IncludePilcrowMarkers, true);
 		} else if (strArg.compare("-d") == 0) {
 			flagsLMTMO.setFlag(LMTMO_DecomposeLetters, true);
+		} else if (strArg.compare("-rn") == 0) {
+			nRefType = ERRTE_NOMINAL;
+		} else if (strArg.compare("-rs") == 0) {
+			nRefType = ERRTE_START;
+		} else if (strArg.compare("-re") == 0) {
+			nRefType = ERRTE_END;
+		} else if (strArg.compare("-rf") == 0) {
+			nRefType = ERRTE_FIRST;
+		} else if (strArg.compare("-rl") == 0) {
+			nRefType = ERRTE_LAST;
 		} else if (strArg.compare("-l") == 0) {
 			nLetterCase = LCE_LOWER;
 		} else if (strArg.compare("-u") == 0) {
@@ -553,6 +564,11 @@ int main(int argc, char *argv[])
 		std::cerr << QString("  -pntca =  No Translation Change/Added in Punctuation generation\n").toUtf8().data();
 		std::cerr << QString("  -pp    =  Include Pilcrow Markers in Punctuation generation\n").toUtf8().data();
 		std::cerr << QString("  -d     =  Decompose Letters (Remove Accent Marks)\n").toUtf8().data();
+		std::cerr << QString("  -rn    =  Reference Type: Nominal (this is the default)\n").toUtf8().data();
+		std::cerr << QString("  -rs    =  Reference Type: Start Cell\n").toUtf8().data();
+		std::cerr << QString("  -re    =  Reference Type: End Cell\n").toUtf8().data();
+		std::cerr << QString("  -rf    =  Reference Type: First Letter\n").toUtf8().data();
+		std::cerr << QString("  -rl    =  Reference Type: Last Letter\n").toUtf8().data();
 		std::cerr << QString("  -l     =  Print Output Text in all lowercase (this is the default)\n").toUtf8().data();
 		std::cerr << QString("  -u     =  Print Output Text in all uppercase (default is lowercase)\n").toUtf8().data();
 		std::cerr << QString("  -o     =  Print Output Text in original case (default is lowercase)\n").toUtf8().data();
@@ -708,7 +724,7 @@ int main(int argc, char *argv[])
 	std::cout << "\n";
 
 	// Sort results based on sort order:
-	sortELSResultList(nSortOrder, lstResults);
+	sortELSResultList(nSortOrder, lstResults, nRefType);
 
 	// Print Results:
 	std::cout << QString("Found %1 Results:\n").arg(lstResults.size()).toUtf8().data();
